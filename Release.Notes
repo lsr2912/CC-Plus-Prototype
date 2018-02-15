@@ -1,0 +1,27 @@
+Update : 2/21/2018
+  * agents::Sushi_ingest.php
+    - Added logic to prevent multiple records being stored for a yearmon-inst-prov-report.
+    - Script now also checks whether it successfully ingested a report matching a pending
+      retry in failed_ingests, and if so, clears the failed_ingest record.
+  * agents::Retry_Failed_Ingest.php
+    - bugfix for building ingest command, changed a print stmt to use frwite to STDOUT
+  * libraries::statsutils.inc.php
+    - New functions: ccp_retries_pending , ccp_count_report_records, ccp_erase_report_records
+    - ccp_get_ingest_record function modified to return a failed_ID if one exists
+    - Tidied up some inline commentary
+  * libraries::dbutils.inc.php
+    - ccp_get_alerts function sends back Report_Name now
+  * htdocs::IngestLog.php
+    - Put all doc.ready() javascript in the include file
+    - Added functionality to deliver details for failed ingests through a popup
+    - Added "Run Date" (timestamp) column to the display, tinkere with some labels
+  * htdocs::failed_detail_js.php
+    - new function called by jquery to pull failed ingest details
+
+Version 0.2 : Released 2/15/2018
+  * Alerts subsystem and accompanying automation only halfway built
+  * Manual ingest process may still be buggy, and could also use a batch/mutliple-report
+    option to allow for wholesale ingest of month(s),  institution(s), or provider(s). This
+    means a queue and queue-handling page(s), but wasn't scoped for the intial project.
+  * The JR5 report schema extending code (to add columns as future YOP-#### data comes in
+    for future years) is suspect. Did manually in January, but code needs further testing.

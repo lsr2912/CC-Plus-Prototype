@@ -1,0 +1,179 @@
+#!/bin/bash
+#-------------------------------------------------------------------------------------- 
+# Copyright 2017,2018 Scott Ross
+# This file is part of CC-Plus.
+#
+# CC-Plus is free software: you can redistribute it and/or modify it under the terms
+# of the GNU General Public License as published by the Free Software Foundation,
+# either version 3 of the License, or (at your option) any later version.
+#
+# CC-Plus is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+# without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+# PURPOSE.  See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along with CC-Plus.
+# If not, see <http://www.gnu.org/licenses/>.
+#--------------------------------------------------------------------------------------
+#
+# PURPOSE: Initial setup of the CC-PLUS codebase and database tables
+#
+echo " ";
+echo "---------------------------------------------------------------------";
+echo "This script installs the software and scripts for the CC-Plus system.";
+echo "Once installed, you will also need to setup one or more Consortia    ";
+echo "into the database/system using the \"Add_Consortium\" script.        ";
+echo "---------------------------------------------------------------------";
+echo " ";
+echo "-- Web Definitions --";
+echo "---------------------";
+default="http://localhost/"
+read -e -i "$default" -p "Enter the ROOT url for the service : " input
+rooturl="${input:-$default}"
+if [[ ! "$rooturl" =~ '/'$ ]]; then
+  rooturl=${rooturl}$(printf \\$(printf '%03o' $(($(printf '%d' "'${STR:(-1)}")==47?0:47))))
+fi
+echo " ";
+default="0"
+read -e -i "$default" -p "Cookie lifetime for login persistence in days : " input
+cookielife="${input:-$default}"
+echo " ";
+echo "-- Software paths --";
+echo "--------------------";
+default="/var/www/html/"
+read -e -i "$default" -p "Install the HTML tree to : " input
+htmlpath="${input:-$default}"
+if [[ ! "$htmlpath" =~ '/'$ ]]; then
+  htmlpath=${htmlpath}$(printf \\$(printf '%03o' $(($(printf '%d' "'${STR:(-1)}")==47?0:47))))
+fi
+echo " ";
+default="/usr/local/ccp_agents/"
+read -e -i "$default" -p "Install binary processor scripts to : " input
+agentspath="${input:-$default}"
+if [[ ! "$agentspath" =~ '/'$ ]]; then
+  agentspath=${agentspath}$(printf \\$(printf '%03o' $(($(printf '%d' "'${STR:(-1)}")==47?0:47))))
+fi
+echo " ";
+default="/usr/share/php/"
+read -e -i "$default" -p "Path to shareable PHP libraries : " input
+phplibpath="${input:-$default}"
+if [[ ! "$phplibpath" =~ '/'$ ]]; then
+  phplibpath=${phplibpath}$(printf \\$(printf '%03o' $(($(printf '%d' "'${STR:(-1)}")==47?0:47))))
+fi
+echo " ";
+echo "-- MySQL Credentials --";
+echo "-----------------------";
+default="conso_admin"
+read -e -i "$default" -p "Admin Username for consortia ('ccplus_SOMEKEY') databases : " input
+consoAdminUser="${input:-$default}"
+input=""
+while [ "$input" == "" ]
+do
+  read -p "Admin Password for consortia ('ccplus_SOMEKEY') databases : " input
+  consoAdminPass="$input"
+done
+default="conso_user"
+read -e -i "$default" -p "Read-only Username for consortia ('ccplus_SOMEKEY') databases : " input
+consoReadUser="${input:-$default}"
+input=""
+while [ "$input" == "" ]
+do
+  read -p "Read-only Password for consortia ('ccplus_SOMEKEY') databases : " input
+  consoReadPass="$input"
+done
+echo " ";
+echo "-- Confirm provided settings --";
+echo "-------------------------------";
+echo " ";
+echo "Site Root URL         : $rooturl"
+echo "Login cookie lifetime : $cookielife"
+echo "PHP Libraries Path    : $phplibpath"
+echo "Htdocs Path           : $htmlpath"
+echo "Agents Path           : $agentspath"
+echo "Consortia Admin User  : $consoAdminUser"
+echo "Consortia Admin Pass  : $consoAdminPass"
+echo "Consortia Read User   : $consoReadUser"
+echo "Consortia Read Pass   : $consoReadPass"
+echo " ";
+default="Y"
+read -e -i "$default" -p "Proceed with these settings? : " input
+input=${input,,} #tolower
+response="${input:-$default}"
+if [[ $response =~ [y](es)* ]] || [[ -z $response ]]; then
+   echo " ";
+   echo "-- Setting up CC-Plus libraries --";
+   echo "----------------------------------";
+else
+   exit 0;
+fi
+echo " ";
+sed -i "s,__CCPLUSROOTURL__,$rooturl,g" libraries/constants.inc.php 
+sed -i "s,__CCPLUSAGENTS__,$agentspath,g" libraries/constants.inc.php 
+sed -i "s,__COOKIELIFE__,$cookielife,g" libraries/constants.inc.php 
+sed -i "s,__ConsoAdminUser__,$consoAdminUser,g" libraries/dbutils.inc.php 
+sed -i "s,__ConsoAdminPass__,$consoAdminPass,g" libraries/dbutils.inc.php 
+sed -i "s,__ConsoReadUser__,$consoReadUser,g" libraries/dbutils.inc.php 
+sed -i "s,__ConsoReadPass__,$consoReadPass,g" libraries/dbutils.inc.php 
+sed -i "s,__ConsoAdminUser__,$consoAdminUser,g" agents/Add_Consortium
+sed -i "s,__ConsoAdminPass__,$consoAdminPass,g" agents/Add_Consortium
+sed -i "s,__ConsoReadUser__,$consoReadUser,g" agents/Add_Consortium
+sed -i "s,__ConsoReadPass__,$consoReadPass,g" agents/Add_Consortium
+echo " ";
+echo "-- Done with edits, copying --";
+echo "------------------------------";
+if [ ! -d "$htmlpath" ]; then
+  mkdir "$htmlpath"
+fi
+cp -r htdocs/* "$htmlpath"
+libspath="$phplibpath"ccplus
+if [ ! -d "$libspath" ]; then
+  mkdir "$libspath"
+fi
+cp libraries/* "$libspath"
+if [ ! -d "$agentspath" ]; then
+  mkdir "$agentspath"
+fi
+cp -r agents/* "$agentspath"
+echo " ";
+echo "-- Creating databses --";
+echo "-----------------------";
+echo " ";
+default="Y"
+read -e -i "$default" -p "Can your current account create MySQL databasese without a username/password? : " input
+input=${input,,} #tolower
+response="${input:-$default}"
+if [[ $response =~ [y](es)* ]] || [[ -z $response ]]; then
+   mysql < ./sql/ccplus_global.sql
+   mysql < ./sql/ccplus_con_template.sql
+else
+   input=""
+   while [ "$input" == "" ]
+   do
+     read -p "MySQL Username able to create databases : " input
+     myUser="$input"
+   done
+   input=""
+   while [ "$input" == "" ]
+   do
+     read -p "Password for this Username : " input
+     myPass="$input"
+   done
+   mysql -u$myUser -p$myPass < ./sql/ccplus_global.sql
+   mysql -u$myUser -p$myPass < ./sql/ccplus_con_template.sql
+fi
+echo " ";
+echo "-- Initial Setup Complete --";
+echo "----------------------------";
+echo " ";
+default="Y"
+read -e -i "$default" -p "Add a Consortium now? : " input
+input=${input,,} #tolower
+response="${input:-$default}"
+if [[ $response =~ [y](es)* ]] || [[ -z $response ]]; then
+   bash ${agentspath}Add_Consortium $myUser $myPass
+fi
+echo " ";
+echo "New Consortia can be added anytime via:";
+echo "---------------------------------------";
+echo "# ${agentspath}Add_Consortium";
+echo "---------------------------------------";
+echo " ";
