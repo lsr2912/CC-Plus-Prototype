@@ -645,10 +645,18 @@ if (!function_exists("ccp_get_alerts")) {
     // Setup the query
     //
     $_qry  = "SELECT Al.*, Met.legend, Pr.name AS prov_name, Inst.name AS inst_name,";
+<<<<<<< refs/remotes/origin/master
     $_qry .= " CONCAT(Usr.first_name, ' ', Usr.last_name) AS user_name,";
     $_qry .= " DATE_FORMAT(Al.time_stamp,'%Y-%m-%d') as ts_date FROM alerts AS Al";
     $_qry .= " LEFT JOIN alert_settings AS Ast ON Al.settings_id=Ast.ID";
     $_qry .= " LEFT JOIN ccplus_global.Metrics AS Met ON Ast.metric_xref=Met.ID";
+=======
+    $_qry .= " CONCAT(Usr.first_name, ' ', Usr.last_name) AS user_name, Rpt.Report_Name,";
+    $_qry .= " DATE_FORMAT(Al.time_stamp,'%Y-%m-%d') as ts_date FROM alerts AS Al";
+    $_qry .= " LEFT JOIN alert_settings AS Ast ON Al.settings_id=Ast.ID";
+    $_qry .= " LEFT JOIN ccplus_global.Metrics AS Met ON Ast.metric_xref=Met.ID";
+    $_qry .= " LEFT JOIN ccplus_global.Reports AS Rpt ON Met.rept_id=Rpt.ID";
+>>>>>>> CC-Plus Version 0.2
     $_qry .= " LEFT JOIN provider AS Pr ON Al.prov_id=Pr.prov_id";
     $_qry .= " LEFT JOIN institution AS Inst ON Al.inst_id=Inst.inst_id";
     $_qry .= " LEFT JOIN users AS Usr ON Al.modified_by=Usr.user_id";

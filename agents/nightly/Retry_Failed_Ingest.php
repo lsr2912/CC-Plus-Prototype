@@ -54,6 +54,7 @@ foreach ( $consortia as $_Con ) {
   //
   foreach ( $failed as $target ) {
 
+<<<<<<< refs/remotes/origin/master
     // If target RequestorID is not null, call out the SUSHI ingest
     //
     $command = "php ";
@@ -72,6 +73,17 @@ foreach ( $consortia as $_Con ) {
     $command .= " Report=" . $target['report_name'];
 
     print $_Con['ccp_key'] . " : Ingest retry : " . $command . "\n";
+=======
+    // Call out the SUSHI ingest
+    //
+    $command = "php ";
+    $command .= CCPLUSAGENTS . "nightly/Sushi_ingest.php" . " Cons=" . $_Con['ID'];
+    $command .= " Inst=" . $target['inst_id'] . " Prov=" . $target['prov_id'];
+    $command .= " Month=" . $target['yearmon'] . " Retry=" . $target['Failed_ID'];
+    $command .= " Report=" . $target['report_name'];
+
+    fwrite(STDOUT,$_Con['ccp_key'] . " : Ingest retry : " . $command . "\n");
+>>>>>>> CC-Plus Version 0.2
 
     // Execute the command to retry
     //

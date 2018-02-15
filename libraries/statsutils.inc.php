@@ -141,9 +141,12 @@ if (!function_exists("ccp_record_ingest")) {
     // Execute the query to add the record
     //
     $_qry  = "INSERT INTO ingest_record (inst_id,prov_id,report_xref,yearmon,status) VALUES (?,?,?,?,?)";
+<<<<<<< refs/remotes/origin/master
 
     // execute the contract table insert
     //
+=======
+>>>>>>> CC-Plus Version 0.2
     try {
       $sth = $ccp_adm_cnx->prepare($_qry);
       $sth->execute(array($inst_id, $prov_id, $report_id, $yearmon, $status));
@@ -153,6 +156,44 @@ if (!function_exists("ccp_record_ingest")) {
   }
 }
 
+<<<<<<< refs/remotes/origin/master
+=======
+// Test for a prior, failed ingest attempt with retries pending
+// Returns : ID of the failed_ingest record, or zero if no match
+//
+if (!function_exists("ccp_retries_pending")) {
+  function ccp_retries_pending( $prov_id, $inst_id, $report, $yearmon ) {
+
+    // Connect to database as user
+    //
+    global $ccp_usr_cnx;
+    if ( !$ccp_usr_cnx ) { $ccp_usr_cnx = ccp_open_db(); }
+
+    $failed_ID = 0;
+
+    // Build the query
+    //
+    $_qry  = "SELECT FI.ID AS failed_ID,retry_count FROM failed_ingest AS FI";
+    $_qry .= " LEFT JOIN sushi_settings AS Su ON FI.settings_id=Su.ID";
+    $_qry .= " WHERE FI.report_name='" . $report . "' AND FI.yearmon='" . $yearmon . "' AND";
+    $_qry .= " Su.inst_id=" . $inst_id . " AND Su.prov_id= " . $prov_id;
+
+    // Execute query
+    //
+    try {
+      $_result = $ccp_usr_cnx->query($_qry);
+      while ( $row = $_result->fetch(PDO::FETCH_ASSOC) ) {
+        if ( $row['retry_count'] < MAX_INGEST_RETRIES ) { $failed_ID = $row['failed_ID']; }
+      }
+    } catch (PDOException $e) {
+      echo $e->getMessage();
+      exit();
+    }
+    return $failed_ID;
+  }
+}
+
+>>>>>>> CC-Plus Version 0.2
 // Function to clear a failed_ingest log entry
 // (called for a successful retry)
 //
@@ -164,12 +205,18 @@ if (!function_exists("ccp_clear_failed")) {
     global $ccp_adm_cnx;
     if ( !$ccp_adm_cnx ) { $ccp_adm_cnx = ccp_open_db("","Admin"); }
 
+<<<<<<< refs/remotes/origin/master
     // Execute the query to delete the
     //
     $_qry  = "DELETE FROM failed_ingest WHERE ID=" . $retryID;
 
     // execute the contract table insert
     //
+=======
+    // Execute the query to delete the entry
+    //
+    $_qry  = "DELETE FROM failed_ingest WHERE ID=" . $retryID;
+>>>>>>> CC-Plus Version 0.2
     try {
       $sth = $ccp_adm_cnx->prepare($_qry);
       $sth->execute();
@@ -231,8 +278,11 @@ if (!function_exists("ccp_log_failed_ingest")) {
       $_qry  = "INSERT INTO failed_ingest (settings_id,report_xref,report_name,yearmon,process_step,retry_count,detail)";
       $_qry .= "  VALUES (?,?,?,?,?,?,?)";
 
+<<<<<<< refs/remotes/origin/master
       // execute the contract table insert
       //
+=======
+>>>>>>> CC-Plus Version 0.2
       try {
         $sth = $ccp_adm_cnx->prepare($_qry);
         $sth->execute(array($setting_id, $report_id, $report_name, $yearmon, $step, 0, $detail));
@@ -269,8 +319,11 @@ if (!function_exists("ccp_record_manual")) {
     $_qry  = "INSERT INTO Manual_Staging (XML_File,CSV_File,report_ID,yearmon,prov_id,con_key,inst_id)";
     $_qry .= " VALUES (?,?,?,?,?,?,?)";
 
+<<<<<<< refs/remotes/origin/master
     // execute the contract table insert
     //
+=======
+>>>>>>> CC-Plus Version 0.2
     try {
       $sth = $ccp_adm_cnx->prepare($_qry);
       $sth->execute(array($xml_file, $csv_file, $report_id, $yearmon, $prov_id, $con_key, $inst_id));
@@ -403,6 +456,80 @@ if (!function_exists("ccp_repts_available")) {
   }
 }
 
+<<<<<<< refs/remotes/origin/master
+=======
+// Function to return a count of statistics records
+//
+// Arguments:
+//   $_rept  : Report to be pulled (must begin with a known report)
+//   $_inst  : Limit output to a specific institution ID
+//   $_prov  : Limit output to a specific provider ID
+//   $_plat  : Limit output to a specific platform ID
+//   $_from  : Pull records from year-month
+//   $_to    : Pull records to year-month
+//             (To pull a range, $_from and $_to BOTH need to be non-null)
+//   $_DB    : Database (name) to be checked
+// Returns:
+//   $_count : number of matching records
+//
+if (!function_exists("ccp_count_report_records")) {
+  function ccp_count_report_records( $_rept, $_inst=0, $_prov=0, $_plat=0, $_from="", $_to="", $_DB="" ) {
+
+    // Setup database connection; if $_DB is null, use session to
+    // try and figure it out.
+    //
+    global $ccp_usr_cnx;
+    if ( $_DB == "" ) { $_DB = "ccplus_" . $_SESSION['ccp_con_key']; }
+    if ( !$ccp_usr_cnx ) { $ccp_usr_cnx = ccp_open_db($_DB); }
+
+    //  Build query based on $_rept (required)
+    //
+    if ( substr($_rept,0,3) == "JR1" ) {
+      $table = "JR1_Report_Data";
+    } else if ($_rept == "JR5" ) {
+      $table = "JR5_Report_Data";
+    } else {
+      return false;
+    }
+    $_qry = "SELECT COUNT(*) AS RecCount FROM " . $table;
+
+    // Build where clause
+    //
+    $_where = "";
+    if ($_inst>0) { $_where .= "inst_id=$_inst"; }
+    if ($_prov>0) {
+      $_where .= ( $_where == "" ) ? "" : " AND ";
+      $_where .= "prov_id=$_prov";
+    }
+    if ($_plat>0) {
+      $_where .= ( $_where == "" ) ? "" : " AND ";
+      $_where .= "plat_id=$_plat";
+    }
+    if ($_from!="" && $_to!="") {
+      $_where .= ( $_where == "" ) ? "" : " AND ";
+      $_where .= "STR_TO_DATE(yearmon,'%Y-%m') BETWEEN ";
+      $_where .= "STR_TO_DATE('" . $_from . "','%Y-%m') AND ";
+      $_where .= "STR_TO_DATE('" . $_to . "','%Y-%m')";
+    }
+    if ( $_where != "" ) $_qry .= " WHERE " . $_where;
+
+    // Execute the delete query
+    //
+    $_count = 0;
+    try {
+      $_result = $ccp_usr_cnx->query($_qry);
+      while ( $row = $_result->fetch(PDO::FETCH_ASSOC) ) {
+        $_count = $row['RecCount'];
+      }
+    } catch (PDOException $e) {
+      echo $e->getMessage();
+      exit();
+    }
+    return $_count;
+  }
+}
+
+>>>>>>> CC-Plus Version 0.2
 // Return stats counts from the JR1_Report_Data table over a given
 // timeframe. A non-zero value for provider/platform/inst will limit
 // the results based on the values given.
@@ -677,6 +804,77 @@ if (!function_exists("ccp_stats_ID_list")) {
   }
 }
 
+<<<<<<< refs/remotes/origin/master
+=======
+// Function to erase statistics records
+//
+// Arguments:
+//   $_rept : Report to be pulled (must begin with a known report)
+//   $_inst : Limit output to a specific institution ID
+//   $_prov : Limit output to a specific provider ID
+//   $_plat : Limit output to a specific platform ID
+//   $_from : Pull records from year-month
+//   $_to   : Pull records to year-month
+//            (To pull a range, $_from and $_to BOTH need to be non-null)
+//   $_DB   : Database (name) to be checked
+// Returns:
+//   Count of records deleted
+//
+if (!function_exists("ccp_erase_report_records")) {
+  function ccp_erase_report_records( $_rept, $_inst=0, $_prov=0, $_plat=0, $_from="", $_to="", $_DB="" ) {
+
+    // Setup database connection; if $_DB is null, use session to
+    // try and figure it out.
+    //
+    global $ccp_adm_cnx;
+    if ( $_DB == "" ) { $_DB = "ccplus_" . $_SESSION['ccp_con_key']; }
+    if ( !$ccp_adm_cnx ) { $ccp_adm_cnx = ccp_open_db($_DB, "Admin"); }
+
+    //  Build query based on $_rept (required)
+    //
+    if ( substr($_rept,0,3) == "JR1" ) {
+      $table = "JR1_Report_Data";
+    } else if ($_rept == "JR5" ) {
+      $table = "JR5_Report_Data";
+    } else {
+      return false;
+    }
+    $_qry = "DELETE FROM " . $table;
+
+    // Build where clause
+    //
+    $_where = "";
+    if ($_inst>0) { $_where .= "inst_id=$_inst"; }
+    if ($_prov>0) {
+      $_where .= ( $_where == "" ) ? "" : " AND ";
+      $_where .= "prov_id=$_prov";
+    }
+    if ($_plat>0) {
+      $_where .= ( $_where == "" ) ? "" : " AND ";
+      $_where .= "plat_id=$_plat";
+    }
+    if ($_from!="" && $_to!="") {
+      $_where .= ( $_where == "" ) ? "" : " AND ";
+      $_where .= "STR_TO_DATE(yearmon,'%Y-%m') BETWEEN ";
+      $_where .= "STR_TO_DATE('" . $_from . "','%Y-%m') AND ";
+      $_where .= "STR_TO_DATE('" . $_to . "','%Y-%m')";
+    }
+    if ( $_where != "" ) $_qry .= " WHERE " . $_where;
+
+    // Execute the delete query
+    //
+    try {
+      $sth = $ccp_adm_cnx->prepare($_qry);
+      $sth->execute();
+    } catch (PDOException $e) {
+      echo $e->getMessage();
+      exit();
+    }
+    return $sth->rowCount();
+  }
+}
+
+>>>>>>> CC-Plus Version 0.2
 // Function to return ingest log entries as an array 
 //
 // Arguments:
@@ -709,11 +907,22 @@ if (!function_exists("ccp_get_ingest_record")) {
     // Setup the query
     //
     $_qry  = "SELECT IR.*,Prov.name as prov_name,Inst.name as inst_name,Rpt.Report_Name,Rpt.revision,";
+<<<<<<< refs/remotes/origin/master
     $_qry .= " Rpt.ID as report_ID, CONCAT(Rpt.Report_Name, ' (v', Rpt.revision, ')') AS report_name";
     $_qry .= " FROM ingest_record AS IR";
     $_qry .= " LEFT JOIN provider AS Prov ON IR.prov_id=Prov.prov_id";
     $_qry .= " LEFT JOIN institution AS Inst ON IR.inst_id=Inst.inst_id";
     $_qry .= " LEFT JOIN ccplus_global.Reports AS Rpt ON IR.report_xref=Rpt.ID";
+=======
+    $_qry .= " Rpt.ID as report_ID, CONCAT(Rpt.Report_Name, ' (v', Rpt.revision, ')') AS report_name,";
+    $_qry .= " FI.ID as failed_ID FROM ingest_record AS IR";
+    $_qry .= " LEFT JOIN provider AS Prov ON IR.prov_id=Prov.prov_id";
+    $_qry .= " LEFT JOIN institution AS Inst ON IR.inst_id=Inst.inst_id";
+    $_qry .= " LEFT JOIN sushi_settings AS Sus ON (IR.inst_id=Sus.inst_id AND IR.prov_id=Sus.prov_id)";
+    $_qry .= " LEFT JOIN ccplus_global.Reports AS Rpt ON IR.report_xref=Rpt.ID";
+    $_qry .= " LEFT JOIN failed_ingest AS FI ON";
+    $_qry .= " (FI.yearmon=IR.yearmon AND FI.report_xref=IR.report_xref AND FI.settings_id=Sus.ID)";
+>>>>>>> CC-Plus Version 0.2
 
     // Setup where clause
     //
@@ -724,12 +933,21 @@ if (!function_exists("ccp_get_ingest_record")) {
       if ( $_prov!=0 ) { $where .= "IR.prov_id=" . $_prov . " AND "; }
       if ( $_inst!=0 ) { $where .= "IR.inst_id=" . $_inst . " AND "; }
       if ($_from!=0 && $_to!=0) {
+<<<<<<< refs/remotes/origin/master
         $where .= "STR_TO_DATE(yearmon,'%Y-%m') BETWEEN ";
         $where .= "STR_TO_DATE('" . $_from . "','%Y-%m') AND ";
         $where .= "STR_TO_DATE('" . $_to . "','%Y-%m') AND ";
       }
       // if ( $_from!=0 ) { $where .= "yearmon>='" . $_from . "' AND "; }
       // if ( $_to!=0 )   { $where .= "yearmon<='" .   $_to . "' AND "; }
+=======
+        $where .= "STR_TO_DATE(IR.yearmon,'%Y-%m') BETWEEN ";
+        $where .= "STR_TO_DATE('" . $_from . "','%Y-%m') AND ";
+        $where .= "STR_TO_DATE('" . $_to . "','%Y-%m') AND ";
+      }
+      // if ( $_from!=0 ) { $where .= "IR.yearmon>='" . $_from . "' AND "; }
+      // if ( $_to!=0 )   { $where .= "IR.yearmon<='" .   $_to . "' AND "; }
+>>>>>>> CC-Plus Version 0.2
       if ( $_stat!="ALL") { $where .= "status='" . $_stat . "' AND "; }
       if ( $_rept!=0 ) { $where .= "Rpt.ID=" . $_rept; }
       $where = preg_replace("/ AND $/","",$where);
@@ -738,6 +956,10 @@ if (!function_exists("ccp_get_ingest_record")) {
     // Execute query, prepare results
     //
     if ( $where != " WHERE " ) { $_qry .= $where; }
+<<<<<<< refs/remotes/origin/master
+=======
+    $_qry .= " ORDER BY IR.timestamp ASC";
+>>>>>>> CC-Plus Version 0.2
 
     $alerts=array();
     try {
