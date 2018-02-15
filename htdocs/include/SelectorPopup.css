@@ -1,0 +1,48 @@
+/* Classes for column selector 
+----------------------------------*/
+.columnSelectorWrapper {
+  position: relative;
+  float: left;
+  margin-left: 5%;
+  display: inline-block;
+}
+.columnSelector, .hidden {
+  display: none;
+}
+.columnSelectorButton {
+  background: #99bfe6;
+  border: #888 1px solid;
+  color: #111;
+  border-radius: 5px;
+  padding: 5px;
+}
+#colSelect1:checked + label {
+  background: #5797d7;
+  border-color: #555;
+}
+#colSelect1:checked ~ #columnSelector {
+  display: block;
+}
+.columnSelector {
+  width: 90px;
+  position: absolute;
+  text-align: left;
+  top: 30px;
+  padding: 0px;
+  background: #fff;
+  border: #99bfe6 1px solid;
+  border-radius: 5px;
+}
+.columnSelector label {
+  display: block;
+}
+.columnSelector label:nth-child(1) {
+  border-bottom: #99bfe6 solid 1px;
+  margin-bottom: 5px;
+}
+.columnSelector input {
+  margin-right: 5px;
+}
+.columnSelector .disabled {
+  color: #ddd;
+}

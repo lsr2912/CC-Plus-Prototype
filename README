@@ -1,0 +1,72 @@
+CC-Plus is a prototype system for collecting, managing, and displaying
+use statistics for libraries within consortia. More details on the
+project partners, funding and obectives can be found here:
+  http://www.palci.org/cc-plus-overview/
+This system is still under development and is intendend to be a
+proof-of-concept that serves as a starting point for building
+a production service or package.
+
+Running Install 
+---------------
+
+The Install shell script prompts for paths and credentials needed to
+setup the CC-Plus System, and moves the files and support libraries
+to the right places. This is still a work-in-progress, and is only
+a proof-of-concept, so the ride will be bumpy. Documentation is ...
+wanting, primarily in-line, but will be written soon-ish.
+
+Post-Install Tasks
+------------------
+
+One path is not, however, managed or known to the Install script,
+and is hard-coded into the libraries/constants.inc.php include file:
+
+define ("CCPLUSREPORTS", "/usr/local/stats_reports/");
+
+This path is the home for the raw-XML and processed Counter-CSV
+files that are retrieved via Sushi. Feel free to change this to
+another place, jut be sure it is accessbile to the webserver.
+ 
+In order for the raw XML and CSV files to be accessible to the
+web-server, this path needs be aliased in the httpd config file
+as "/raw_reports". For example, if CCPLUSROOTURL is "/", then:
+these lines should be added to an Apache .conf file in the
+directory definitions:
+
+   Alias "/raw_reports" "/usr/local/stats_reports"
+   <Directory /usr/local/stats_reports/>
+           AllowOverride All
+           Options All +Indexes
+           Require all granted
+           Order allow,deny
+           Allow from all
+   </Directory>
+
+The "Manual Ingest" function within CC-Plus also wants to be able to
+store the manually retrieved XML and the intermediate CSV files in
+the path in a subfolder named "temp". So,
+
+Create the paths via:
+ # mkdir /usr/local/stats_reports
+ # mkdir /usr/local/stats_reports/temp
+ # chmod 700 /usr/local/stats_reports/temp
+And, if your web/httpd/apache server runs as "apache:apache", then:
+ # chown apache:apache /usr/local/stats_reports/temp
+
+I imagine there are *better* ways to accomplish this, and am certainly
+open to suggestions to improve the functionality - and security - of
+the files/service. This being a first-pass, the easy_basic_brute_force
+method is currently in-use.
+
+Cron Automation
+---------------
+
+Adding these two lines to the host-system cron-configuration (or something
+like them, depending on your preferences) is also a good idea:
+
+CheckManual.php : looks for manually ingested reports in the temp folder,
+                  and if found, processes them into the running system;
+*/10 * * * * root php /usr/local/ccp_agents/CheckManual.php >> /var/log/CCPlus_Nightly.log 2>&1
+
+CCP_nightly.php : runs SUSHI ingests, Retries, and Alert tests, and notifications:
+5 0 * * * root /usr/local/ccp_agents/nightly/CCP_nightly.sh >> /var/log/CCPlus_Nightly.log 2>&1

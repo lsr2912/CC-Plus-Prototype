@@ -1,0 +1,191 @@
+#!/bin/bash
+#
+# PURPOSE: Setup a CC-Plus consortium in MySQL
+#
+#  Allows a mysql username/password to be passed in as $1 and $2
+#  If not given as input, script will prompt
+#
+# chr() - converts decimal value to its ASCII character representation
+chr() {
+  printf \\$(printf '%03o' $1)
+}
+#
+# Get/set mysql access credentials
+#
+if [ ! -z "$1" ]; then
+   myUser=$1
+else
+   input=""
+   while [ "$input" == "" ]
+   do
+     read -p "MySQL Username able to create databases : " input
+     myUser="$input"
+   done
+fi
+if [ ! -z "$2" ]; then
+   myPass=$2
+else
+   input=""
+   while [ "$input" == "" ]
+   do
+     read -p "MySQL Password for '$myUser' : " input
+     myPass="$input"
+   done
+fi
+#
+echo " ";
+echo "------------------------------------------------------------------";
+echo "You are about to create the entries in the CC-Plus host system for";
+echo "a new consortium.";
+echo "------------------------------------------------------------------";
+#
+# Get consortium name
+#
+input=""
+while [ "$input" == "" ]
+do
+  read -p "New Consortium name? []: " input
+  c_name="$input"
+done
+echo " ";
+echo "--------------------------------------------------------------------";
+echo "Each consortium will use a distinct database. Users will not see, or";
+echo "need to know, the database name(s). The database will be named: ";
+echo "'ccplus_<key-value>' , so straying from alphanumeric characters may ";
+echo "cause the database creation to fail. You can allow this script to";
+echo "create a unique key, or provide one.";
+echo "--------------------------------------------------------------------";
+default="Y"
+read -e -i "$default" -p "Let the script create the key? : " input
+input=${input,,} #tolower
+response="${input:-$default}"
+if [[ $response =~ [y](es)* ]] || [[ -z $response ]]; then
+   #
+   # Generate a key using based on current date-time
+   #
+   IFS=':' read -ra DATE <<< `date +%Y:%m:%d:%H:%M:%S:%N`
+   c_key="$(chr $(( $((10#${DATE[0]:0:2}+45)) )))"              # char 1-2 of yr
+   c_key="$c_key$(chr $(( $((10#${DATE[0]:2:2}/4+65)) )))"      # char 3-4 of yr
+   c_key="$c_key$(chr $(( $((10#${DATE[1]}+64)) )))"    # month
+   day=$((10#${DATE[2]}))                               # day
+   if [[ "$day" -lt "27" ]]; then
+      c_key="$c_key$(chr $(( $((10#${DATE[2]}+64)) )))"
+   else
+      c_key="$c_key$(chr $(( $((10#${DATE[2]}+22)) )))"
+   fi
+   c_key="$c_key$(chr $(( $((10#${DATE[3]}+65)) )))"    # hour
+   min=$((10#${DATE[4]}/2))                             # mins
+   if [[ "$min" -lt "26" ]]; then
+      c_key="$c_key$(chr $(( $((10#${DATE[4]}/2+65)) )))"
+   else
+      c_key="$c_key$(chr $(( $((10#${DATE[4]}/2+23)) )))"
+   fi
+   sec=$((10#${DATE[5]}/2))                             # secs
+   if [[ "$sec" -lt "26" ]]; then
+      c_key="$c_key$(chr $(( $((10#${DATE[5]}/2+65)) )))"
+   else
+      c_key="$c_key$(chr $(( $((10#${DATE[5]}/2+23)) )))"
+   fi
+   c_key="$c_key$(chr $(( $((10#${DATE[6]}%26+65)) )))" # nanosecs
+else
+   #
+   # Get key from user input
+   #
+   input=""
+   while [ "$input" == "" ]
+   do
+     read -p "New Consortium key (up to 8 characters used)? []: " input
+     c_key="${input:0:8}"
+   done
+fi
+#
+# Query to check if key or name already defined
+#
+mysql -u$myUser -p$myPass ccplus_global -B -N -s -e "SELECT name,ccp_key FROM Consortia" | while read -r line
+do
+  row_nam=`echo "$line" | cut -f1`
+  row_key=`echo "$line" | cut -f2`
+  if [[ "$c_name" == "$row_nam" ]]; then
+    echo "Another consortium is already defined with that name.";
+    exit 0;
+  fi
+  if [[ "$c_key" == "$row_key" ]]; then
+    echo "Another consortium is already defined with that key.";
+    exit 0;
+  fi
+done
+#
+# Prompt for consortia-admin password
+#
+input=""
+while [ "$input" == "" ]
+do
+  read -p "Password for 'Administrator' account:  " input
+  admin_pass="$input"
+done
+#
+# Prompt for central consortia email address
+#
+input=""
+while [ "$input" == "" ]
+do
+  read -p "Central admin/support email address:  " input
+  c_email="$input"
+done
+#
+# Prompt for confirmation of entries
+#
+echo " ";
+echo "-- Confirm provided settings --";
+echo "-------------------------------";
+echo "New consortium : $c_name";
+echo "Consortia Key  : $c_key";
+echo "Support email  : $c_email";
+echo "Admin Username : Administrator";
+echo "Admin Password : $admin_pass";
+echo " ";
+default="Y"
+read -e -i "$default" -p "Proceed with these settings? : " input
+input=${input,,} #tolower
+response="${input:-$default}"
+if [[ $response =~ [y](es)* ]] || [[ -z $response ]]; then
+   echo " ";
+   echo "-- Updating global CC-Plus database --";
+   echo "--------------------------------------";
+else
+   exit 0;
+fi
+mysql -u$myUser -p$myPass ccplus_global -s -e "INSERT INTO Consortia (ccp_key,name,email) VALUES ('$c_key','$c_name','$c_email')"
+#
+# Create consortium database based on existing template
+#
+echo " ";
+echo "-- Creating Consortia-specific database --";
+echo "------------------------------------------";
+echo " ";
+con_db="ccplus_$c_key"
+mysql -u$myUser -p$myPass -s -e "CREATE DATABASE $con_db"
+#
+mysql -u$myUser -p$myPass -B -N -s -e "SHOW TABLES FROM ccplus_con_template" | while read -r line
+do
+  tpl_table=`echo "$line" | cut -f1`
+  mysql -u$myUser -p$myPass $con_db -s -e "CREATE TABLE $tpl_table LIKE ccplus_con_template.$tpl_table"
+  mysql -u$myUser -p$myPass $con_db -s -e "INSERT INTO $tpl_table SELECT * FROM ccplus_con_template.$tpl_table"
+done
+#
+# Create the admin account in the new consortia user table
+#
+mysql -u$myUser -p$myPass $con_db -s -e "INSERT INTO users (email,password,first_name,last_name,role,password_change_required) VALUES ('Administrator',md5('$admin_pass'),'CC-Plus','Administrator',1,0)"
+#
+# Define grants for accounts
+#
+echo " ";
+echo "-- Setting database GRANTS --";
+echo "-----------------------------";
+echo " ";
+mysql -u$myUser -p$myPass -s -e "GRANT ALL on $con_db.* TO '__ConsoAdminUser__'@'localhost' identified by '__ConsoAdminPass__'"
+mysql -u$myUser -p$myPass -s -e "GRANT ALL on ccplus_global.* TO '__ConsoAdminUser__'@'localhost' identified by '__ConsoAdminPass__'"
+mysql -u$myUser -p$myPass -s -e "GRANT SELECT on $con_db.* TO '__ConsoReadUser__'@'localhost' identified by '__ConsoReadPass__'"
+mysql -u$myUser -p$myPass -s -e "GRANT SELECT on ccplus_global.* TO '__ConsoReadUser__'@'localhost' identified by '__ConsoReadPass__'"
+echo " ";
+echo "-- Done! --";
