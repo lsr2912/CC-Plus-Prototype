@@ -1,6 +1,4 @@
 #!/bin/bash
-<<<<<<< refs/remotes/origin/master
-=======
 #--------------------------------------------------------------------------------------
 # Copyright 2017,2018 Scott Ross
 # This file is part of CC-Plus.
@@ -16,7 +14,6 @@
 # You should have received a copy of the GNU General Public License along with CC-Plus.
 # If not, see <http://www.gnu.org/licenses/>.
 #--------------------------------------------------------------------------------------
->>>>>>> CC-Plus Version 0.2
 #
 # PURPOSE: Setup a CC-Plus consortium in MySQL
 #
