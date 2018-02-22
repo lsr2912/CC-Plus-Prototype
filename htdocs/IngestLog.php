@@ -62,28 +62,12 @@ if ( isset($_SESSION['role']) ) {
 $crumbs = array();	// no crumbs this page
 print_page_header("CC-Plus Ingest Log",TRUE,$crumbs);
 print "  <link href=\"" . CCPLUSROOTURL . "include/tablesorter_theme.css\" rel=\"stylesheet\">\n";
-<<<<<<< refs/remotes/origin/master
-print "  <script src=\"" . CCPLUSROOTURL . "include/jquery.tablesorter.js\"></script>\n";
-print "  <script src=\"" . CCPLUSROOTURL . "include/jquery.tablesorter.widgets.js\"></script>\n";
-print "<script src=\"include/Ingest_Log.js\"></script>\n";
-
-?>
-  <script type="text/javascript">
-    $(document).ready(function() {
-      // Init table sorter
-      ///
-      $('table').tablesorter();
-    });
-  </script>
-<?php
-=======
 print "  <link href=\"" . CCPLUSROOTURL . "include/jquery.qtip.min.css\" rel=\"stylesheet\">\n";
 print "  <script src=\"" . CCPLUSROOTURL . "include/jquery.tablesorter.js\"></script>\n";
 print "  <script src=\"" . CCPLUSROOTURL . "include/jquery.tablesorter.widgets.js\"></script>\n";
 print "  <script src=\"" . CCPLUSROOTURL . "include/jquery.qtip.min.js\"></script>\n";
 print "<script src=\"include/Ingest_Log.js\"></script>\n";
 
->>>>>>> CC-Plus Version 0.2
 // Setup Form and upper table
 //
 print "<form name='IngestLogFrm' id='IngestLog'>\n";
@@ -151,11 +135,7 @@ foreach ( $reports as $_rept ) {
       </td>
     </tr>
     <tr>
-<<<<<<< refs/remotes/origin/master
-      <td align="left"><label for="filter_from"><h4>Filter Reports From</h4></label></td>
-=======
       <td align="left"><label for="filter_from"><h4>Filter Usage Dates</h4></label></td>
->>>>>>> CC-Plus Version 0.2
       <td>&nbsp;</td>
       <td align="left">
         <select name="filter_from" id="filter_from">
@@ -181,11 +161,7 @@ foreach ( $filt_date as $_ym ) {
     </tr>
     <tr><td colspan="6">&nbsp;</td></tr>
   </table>
-<<<<<<< refs/remotes/origin/master
-
-=======
   <center>
->>>>>>> CC-Plus Version 0.2
 <?php
 // Build initial data table
 //
@@ -196,14 +172,9 @@ print "  <table id=\"data_table\" class=\"tablesorter\" cellpadding=\"2\">\n";
         <th id="provider" align='left'>Provider</th>
         <th id="institution" align='left'>Institution</th>
         <th id="report" align='center'>Report</th>
-<<<<<<< refs/remotes/origin/master
-        <th id="yearmon" align='center'>Date</th>
-        <th id="status" align='center'>Status</th>
-=======
         <th id="yearmon" align='center'>Usage Date</th>
         <th id="status" align='center'>Status</th>
         <th id="status" align='center'>Run Date</th>
->>>>>>> CC-Plus Version 0.2
       </tr>
     </thead>
     <tbody id="Summary">
@@ -228,23 +199,16 @@ $records = ccp_get_ingest_record( 0, 0, $from, $to, $_STAT);
     if ($_rec['status']=='Saved') {
       print " class=\"ing_succ\">Saved</td>\n";
     } else if ($_rec['status']=='Failed') {
-<<<<<<< refs/remotes/origin/master
-      print " class=\"ing_fail\">Failed</td>\n";
-=======
       print " class=\"ing_fail\"";
       if ( $_rec['failed_ID'] != "" ) { print " FID=\"" . $_rec['failed_ID'] . "\""; }
       print ">Failed</td>\n";
->>>>>>> CC-Plus Version 0.2
     } else if ($_rec['status']=='Deleted') {
       print " class=\"ing_dele\">Deleted</td>\n";
     } else {
       print ">&nbsp;</td>\n";
     }
-<<<<<<< refs/remotes/origin/master
-=======
     $_TS = date("Y-m-d", strtotime($_rec['timestamp']) );
     print "        <td align='center'>" . $_TS . "</td>\n";
->>>>>>> CC-Plus Version 0.2
     print "      </tr>\n";
   }
 
@@ -255,10 +219,7 @@ $records = ccp_get_ingest_record( 0, 0, $from, $to, $_STAT);
 ?>
     </tbody>
   </table>
-<<<<<<< refs/remotes/origin/master
-=======
   </center>
->>>>>>> CC-Plus Version 0.2
 </form>
 <?php
 include 'ccplus/footer.inc.html.php';

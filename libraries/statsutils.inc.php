@@ -141,12 +141,6 @@ if (!function_exists("ccp_record_ingest")) {
     // Execute the query to add the record
     //
     $_qry  = "INSERT INTO ingest_record (inst_id,prov_id,report_xref,yearmon,status) VALUES (?,?,?,?,?)";
-<<<<<<< refs/remotes/origin/master
-
-    // execute the contract table insert
-    //
-=======
->>>>>>> CC-Plus Version 0.2
     try {
       $sth = $ccp_adm_cnx->prepare($_qry);
       $sth->execute(array($inst_id, $prov_id, $report_id, $yearmon, $status));
@@ -156,8 +150,6 @@ if (!function_exists("ccp_record_ingest")) {
   }
 }
 
-<<<<<<< refs/remotes/origin/master
-=======
 // Test for a prior, failed ingest attempt with retries pending
 // Returns : ID of the failed_ingest record, or zero if no match
 //
@@ -193,7 +185,6 @@ if (!function_exists("ccp_retries_pending")) {
   }
 }
 
->>>>>>> CC-Plus Version 0.2
 // Function to clear a failed_ingest log entry
 // (called for a successful retry)
 //
@@ -205,18 +196,9 @@ if (!function_exists("ccp_clear_failed")) {
     global $ccp_adm_cnx;
     if ( !$ccp_adm_cnx ) { $ccp_adm_cnx = ccp_open_db("","Admin"); }
 
-<<<<<<< refs/remotes/origin/master
-    // Execute the query to delete the
-    //
-    $_qry  = "DELETE FROM failed_ingest WHERE ID=" . $retryID;
-
-    // execute the contract table insert
-    //
-=======
     // Execute the query to delete the entry
     //
     $_qry  = "DELETE FROM failed_ingest WHERE ID=" . $retryID;
->>>>>>> CC-Plus Version 0.2
     try {
       $sth = $ccp_adm_cnx->prepare($_qry);
       $sth->execute();
@@ -278,11 +260,6 @@ if (!function_exists("ccp_log_failed_ingest")) {
       $_qry  = "INSERT INTO failed_ingest (settings_id,report_xref,report_name,yearmon,process_step,retry_count,detail)";
       $_qry .= "  VALUES (?,?,?,?,?,?,?)";
 
-<<<<<<< refs/remotes/origin/master
-      // execute the contract table insert
-      //
-=======
->>>>>>> CC-Plus Version 0.2
       try {
         $sth = $ccp_adm_cnx->prepare($_qry);
         $sth->execute(array($setting_id, $report_id, $report_name, $yearmon, $step, 0, $detail));
@@ -319,11 +296,6 @@ if (!function_exists("ccp_record_manual")) {
     $_qry  = "INSERT INTO Manual_Staging (XML_File,CSV_File,report_ID,yearmon,prov_id,con_key,inst_id)";
     $_qry .= " VALUES (?,?,?,?,?,?,?)";
 
-<<<<<<< refs/remotes/origin/master
-    // execute the contract table insert
-    //
-=======
->>>>>>> CC-Plus Version 0.2
     try {
       $sth = $ccp_adm_cnx->prepare($_qry);
       $sth->execute(array($xml_file, $csv_file, $report_id, $yearmon, $prov_id, $con_key, $inst_id));
@@ -456,8 +428,6 @@ if (!function_exists("ccp_repts_available")) {
   }
 }
 
-<<<<<<< refs/remotes/origin/master
-=======
 // Function to return a count of statistics records
 //
 // Arguments:
@@ -529,7 +499,6 @@ if (!function_exists("ccp_count_report_records")) {
   }
 }
 
->>>>>>> CC-Plus Version 0.2
 // Return stats counts from the JR1_Report_Data table over a given
 // timeframe. A non-zero value for provider/platform/inst will limit
 // the results based on the values given.
@@ -804,8 +773,6 @@ if (!function_exists("ccp_stats_ID_list")) {
   }
 }
 
-<<<<<<< refs/remotes/origin/master
-=======
 // Function to erase statistics records
 //
 // Arguments:
@@ -874,7 +841,6 @@ if (!function_exists("ccp_erase_report_records")) {
   }
 }
 
->>>>>>> CC-Plus Version 0.2
 // Function to return ingest log entries as an array 
 //
 // Arguments:
@@ -907,13 +873,6 @@ if (!function_exists("ccp_get_ingest_record")) {
     // Setup the query
     //
     $_qry  = "SELECT IR.*,Prov.name as prov_name,Inst.name as inst_name,Rpt.Report_Name,Rpt.revision,";
-<<<<<<< refs/remotes/origin/master
-    $_qry .= " Rpt.ID as report_ID, CONCAT(Rpt.Report_Name, ' (v', Rpt.revision, ')') AS report_name";
-    $_qry .= " FROM ingest_record AS IR";
-    $_qry .= " LEFT JOIN provider AS Prov ON IR.prov_id=Prov.prov_id";
-    $_qry .= " LEFT JOIN institution AS Inst ON IR.inst_id=Inst.inst_id";
-    $_qry .= " LEFT JOIN ccplus_global.Reports AS Rpt ON IR.report_xref=Rpt.ID";
-=======
     $_qry .= " Rpt.ID as report_ID, CONCAT(Rpt.Report_Name, ' (v', Rpt.revision, ')') AS report_name,";
     $_qry .= " FI.ID as failed_ID FROM ingest_record AS IR";
     $_qry .= " LEFT JOIN provider AS Prov ON IR.prov_id=Prov.prov_id";
@@ -922,7 +881,6 @@ if (!function_exists("ccp_get_ingest_record")) {
     $_qry .= " LEFT JOIN ccplus_global.Reports AS Rpt ON IR.report_xref=Rpt.ID";
     $_qry .= " LEFT JOIN failed_ingest AS FI ON";
     $_qry .= " (FI.yearmon=IR.yearmon AND FI.report_xref=IR.report_xref AND FI.settings_id=Sus.ID)";
->>>>>>> CC-Plus Version 0.2
 
     // Setup where clause
     //
@@ -933,21 +891,12 @@ if (!function_exists("ccp_get_ingest_record")) {
       if ( $_prov!=0 ) { $where .= "IR.prov_id=" . $_prov . " AND "; }
       if ( $_inst!=0 ) { $where .= "IR.inst_id=" . $_inst . " AND "; }
       if ($_from!=0 && $_to!=0) {
-<<<<<<< refs/remotes/origin/master
-        $where .= "STR_TO_DATE(yearmon,'%Y-%m') BETWEEN ";
-        $where .= "STR_TO_DATE('" . $_from . "','%Y-%m') AND ";
-        $where .= "STR_TO_DATE('" . $_to . "','%Y-%m') AND ";
-      }
-      // if ( $_from!=0 ) { $where .= "yearmon>='" . $_from . "' AND "; }
-      // if ( $_to!=0 )   { $where .= "yearmon<='" .   $_to . "' AND "; }
-=======
         $where .= "STR_TO_DATE(IR.yearmon,'%Y-%m') BETWEEN ";
         $where .= "STR_TO_DATE('" . $_from . "','%Y-%m') AND ";
         $where .= "STR_TO_DATE('" . $_to . "','%Y-%m') AND ";
       }
       // if ( $_from!=0 ) { $where .= "IR.yearmon>='" . $_from . "' AND "; }
       // if ( $_to!=0 )   { $where .= "IR.yearmon<='" .   $_to . "' AND "; }
->>>>>>> CC-Plus Version 0.2
       if ( $_stat!="ALL") { $where .= "status='" . $_stat . "' AND "; }
       if ( $_rept!=0 ) { $where .= "Rpt.ID=" . $_rept; }
       $where = preg_replace("/ AND $/","",$where);
@@ -956,10 +905,7 @@ if (!function_exists("ccp_get_ingest_record")) {
     // Execute query, prepare results
     //
     if ( $where != " WHERE " ) { $_qry .= $where; }
-<<<<<<< refs/remotes/origin/master
-=======
     $_qry .= " ORDER BY IR.timestamp ASC";
->>>>>>> CC-Plus Version 0.2
 
     $alerts=array();
     try {

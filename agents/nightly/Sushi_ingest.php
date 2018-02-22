@@ -205,12 +205,6 @@ foreach ( $consortia as $_Con ) {
         }
         if ( $Report == "JR1" && $Release = "4" ) {
           $status = parse_counter_JR1v4 ( $xml_file, $counter_file, $Begin, $End );
-<<<<<<< refs/remotes/origin/master
-          if ( $status == "Success" ) { $status = process_counter_JR1v4 ( $counter_file, $_PROV, $_INST, $yearmon, $_db ); }
-        } else if ( $Report == "JR5" && $Release = "4" ) {
-          $status = parse_counter_JR5v4 ( $xml_file, $counter_file, $Begin, $End );
-          if ( $status == "Success" ) { $status = process_counter_JR5v4 ( $counter_file, $_PROV, $_INST, $yearmon, $_db ); }
-=======
           if ( $status == "Success" ) {
             // Clear out stored data if it exists...
             //
@@ -233,7 +227,6 @@ foreach ( $consortia as $_Con ) {
             //
             $status = process_counter_JR5v4 ( $counter_file, $_PROV, $_INST, $yearmon, $_db );
           }
->>>>>>> CC-Plus Version 0.2
         }
         if ($status != "Success") {
           fwrite(STDOUT, $status."\n");
@@ -246,10 +239,6 @@ foreach ( $consortia as $_Con ) {
         fwrite(STDOUT,"SUSHI : $Report successfully processed and saved as: '$counter_file'\n");
         ccp_record_ingest( $_PROV, $_INST, $_Rpt['ID'], $yearmon, "Saved" );
 
-<<<<<<< refs/remotes/origin/master
-        // If this was a retry attempt (and we made it this far) clear the failed record
-        //
-=======
         // If this was a retry attempt, OR there was a failed_ingest with a pending
         // retry that matches what just got successfully ingested, clear the failure
         // record to prevent further retries.
@@ -258,7 +247,6 @@ foreach ( $consortia as $_Con ) {
           $pending_ID = ccp_retries_pending($_PROV, $_INST, $Report, $yearmon);
           if ( $pending_ID != 0 ) { $retryID = $pending_ID; }
         } 
->>>>>>> CC-Plus Version 0.2
         if ( $retryID != 0 ) { ccp_clear_failed($retryID); }
 
       }	// For-each report to retrieve
