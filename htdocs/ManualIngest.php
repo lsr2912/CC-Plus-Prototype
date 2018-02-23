@@ -68,6 +68,7 @@ if ( isset($_REQUEST['submit']) ) {
       $ingest_settings[0]['RequestorEmail'] = $_POST['ReqEmail'];
       $ingest_settings[0]['CustRefID'] = $_POST['CustID'];
       $ingest_settings[0]['CustRefName'] = $_POST['CustName'];
+      $yearmon = $_POST['ReportYr'] . "-" . $_POST['ReportMo'];
 
     } else {
       $ERR=2;
@@ -83,6 +84,7 @@ if ( isset($_REQUEST['submit']) ) {
       $_PROV = $_rept['prov_id'];
       $_INST = $_rept['inst_id'];
       $_REPT = $_rept['report_ID'];
+      $yearmon = $_rept['yearmon'];
       $ingest_settings = ccp_get_sushi_settings( $_INST, $_PROV );
     } else {
       $ERR = 2;
@@ -459,7 +461,6 @@ if ( $ERR == 0 ) {
         if ( $_POST['IngestOP']=="CCP" || $_POST['IngestOP']=="ALL" ) {
           $_CONS = $_SESSION['ccp_con_key'];
           $_db = "ccplus_" . $_CONS;
-          $yearmon = $_POST['ReportYr'] . "-" . $_POST['ReportMo'];
           if ( $Report == "JR1" && $Release = "4" ) {
             $proc_status = process_counter_JR1v4 ( $counter_file, $_PROV, $_INST, $yearmon, $_db, "Temp_JR1" );
           } else if ( $Report == "JR5" && $Release = "4" ) {

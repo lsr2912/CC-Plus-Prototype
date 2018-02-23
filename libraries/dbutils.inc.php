@@ -57,17 +57,17 @@ if (!function_exists("ccp_open_db")) {
     $user = "not-defined";
     $pass = "db-name-isbad";
     if ( $access == "Admin" ) {
-      $user = "__ConsoAdminUser__";
-      $pass = "__ConsoAdminPass__";
+      $user = "conso_admin";
+      $pass = "S3t@ndF1x";
     } else {
-      $user = "__ConsoReadUser__";
-      $pass = "__ConsoReadPass__";
+      $user = "conso_user";
+      $pass = "D@rkShad3s";
     }
 
     // Create connection & return
     //
     try {
-      $_cnx = new PDO("mysql:host=$host;dbname=$db_name", $user, $pass);
+      $_cnx = new PDO("mysql:host=$host;dbname=$db_name;charset=utf8", $user, $pass);
       $_cnx->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
       $_cnx->exec("set names utf8");
     } catch (PDOException $e) {

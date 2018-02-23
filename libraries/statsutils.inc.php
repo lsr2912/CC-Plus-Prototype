@@ -512,13 +512,12 @@ if (!function_exists("ccp_count_report_records")) {
 //             $_emo      : month (0 or YYYY-MM)
 //             $_view     : data view-by ("Jrnl", "Inst")
 //             $_ordby    : custom (optional) sort order - defaults to "Total_TTL"
-//             $_function : MySQL function to apply on query (SUM, AVG, etc.)
 //
 //  Returns : $totals : an array of counts
 //
 //
 if (!function_exists("ccp_jr1_usage")) {
-  function ccp_jr1_usage( $_prov, $_plat, $_inst, $_smo=0, $_emo=0, $_view="Jrnl", $_ordby="", $_function='SUM' ) {
+  function ccp_jr1_usage( $_prov, $_plat, $_inst, $_smo=0, $_emo=0, $_view="Jrnl", $_ordby="" ) {
 
     // Connect to database as user
     //
@@ -544,9 +543,9 @@ if (!function_exists("ccp_jr1_usage")) {
     }
     $_qry .= "SUM(RP_TTL) as Total_TTL, SUM(RP_PDF) as Total_PDF, SUM(RP_HTML) as Total_HTML";
     foreach ($months as $_ym) {
-      $_qry .= "," . $_function . "(IF (yearmon='".$_ym."',RP_TTL,0)) AS '".prettydate($_ym)."_TTL'"; 
-      $_qry .= "," . $_function . "(IF (yearmon='".$_ym."',RP_PDF,0)) AS '".prettydate($_ym)."_PDF'";
-      $_qry .= "," . $_function . "(IF (yearmon='".$_ym."',RP_HTML,0)) AS '".prettydate($_ym)."_HTML'";
+      $_qry .= ",SUM(IF (yearmon='".$_ym."',RP_TTL,0)) AS '".prettydate($_ym)."_TTL'"; 
+      $_qry .= ",SUM(IF (yearmon='".$_ym."',RP_PDF,0)) AS '".prettydate($_ym)."_PDF'";
+      $_qry .= ",SUM(IF (yearmon='".$_ym."',RP_HTML,0)) AS '".prettydate($_ym)."_HTML'";
     }
     $_qry .= " FROM JR1_Report_Data AS Data";
     $_qry .= " INNER JOIN ccplus_global.Platform AS Plat ON Plat.ID=Data.plat_id";
@@ -608,13 +607,12 @@ if (!function_exists("ccp_jr1_usage")) {
 //             $_smo      : month (0 or YYYY-MM)	
 //             $_emo      : month (0 or YYYY-MM)
 //             $_view     : data view-by ("Jrnl", "Inst")
-//             $_function : MySQL function to apply on query (SUM, AVG, etc.)
 //
 //  Returns : $totals : an array of counts
 //
 //
 if (!function_exists("ccp_jr5_usage")) {
-  function ccp_jr5_usage( $_prov, $_plat, $_inst, $_smo=0, $_emo=0, $_view="Jrnl", $_function='SUM') {
+  function ccp_jr5_usage( $_prov, $_plat, $_inst, $_smo=0, $_emo=0, $_view="Jrnl") {
 
     // Connect to database as user
     //
@@ -643,7 +641,7 @@ if (!function_exists("ccp_jr5_usage")) {
     $_TTL = ",SUM(";
     $yops = ccp_get_yop_columns();
     foreach ( $yops as $_col ) {
-      $_qry .= "," . $_function . "(`" . $_col. "`) AS `" . $_col . "`";
+      $_qry .= ",SUM(`" . $_col. "`) AS `" . $_col . "`";
       $_TTL .= "`" . $_col . "`+";
     }
     $_qry .= preg_replace("/\+$/",") AS Total",$_TTL);

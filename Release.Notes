@@ -1,3 +1,19 @@
+Update : 2/23/2018
+  * libraries::dbutils.inc.php
+    - ccp_open_db now uses charset=utf8 when opening mysql connections
+    - removed "function" argument from ccp_jr1_usage and ccp_jr5_usage functions since
+      the only function being used (for the foreseeable future) is "SUM".
+  * libraries::Encoding.php (new file)
+    - from https://github.com/neitanod/forceutf8 , for forcing text encoding to utf-8
+  * htdocs::ManualIngest.php
+    - sushi_request.inc was trying to parse $yearmon (which wasn't always set)
+  * htdocs::ExportSettings.php
+    - Exported CSV data now sets charset to UTF-8
+  * htdocs::ImportSettings.php
+    - Imported CSV data now being forced to UTF-8
+  * htdocs::ReportsHome.php
+    - "Counter Metric" replaces "Displayed counts" as label for JR1-specific dropdown
+    - Added Total_PDF and Total_HTML columns for reporting period to the CSV output
 Update : 2/21/2018
   * agents::Sushi_ingest.php
     - Added logic to prevent multiple records being stored for a yearmon-inst-prov-report.

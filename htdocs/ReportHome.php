@@ -260,7 +260,7 @@ if ( $_DEST == "HTML" ) {
       </td>
     </tr>
     <tr>
-      <td align="left"><label for="JR1Col" id="JR1ColLab"><h4>Displayed counts</h4></label></td>
+      <td align="left"><label for="JR1Col" id="JR1ColLab"><h4>Counter Metric</h4></label></td>
       <td>&nbsp;</td>
       <td align="left">
         <select name="JR1Col" id="JR1Col">
@@ -491,30 +491,24 @@ if ( $_RUNIT ) {
     //
     $header  = ( $_VIEW == "Inst" ) ? "Institution" : "Journal";
     $header .= ",Provider,Platform";
-    // $header2 = ",,,";
     if ( $_VIEW == "Jrnl" ) {
       $header .= ",Journal DOI,Proprietary ID,Print ISSN,Online ISSN";
-      // $header2 .= ",,,,";
     }
-    $header .= ",Total";
     if ( $_REPT == "JR1" ) {
+      $header .= ",Reporting Period Total,Reporting Period HTML,Reporting Period PDF";
       foreach ( $year_mons as $_ym ) {
         $_col = prettydate($_ym);
         $header .= "," . $_col . "_Total";
-        $header .= "," . $_col . "_PDF";
         $header .= "," . $_col . "_HTML";
-        // $header .= ",," . prettydate($_ym) . ",";
-        // $header2 .= ",Total,PDF,HTML";
+        $header .= "," . $_col . "_PDF";
       }
-      // $header .= "\n" . $header2 . "\n";
     } else if ( $_REPT == "JR5" ) {
-      $header .= ",Articles in Press";
+      $header .= ",Total,Articles in Press";
       $yops = ccp_get_yop_columns();
       foreach ( $yops as $_yop ) {
         if ( $_yop == "YOP_InPress" ) { continue; }
         $header .= $_yop;
       }
-      // $header .= "\n";
     }
     $header .= "\n";
 
@@ -525,8 +519,9 @@ if ( $_RUNIT ) {
     if ( $_PROV!=0 ) { $out_file .= "Prov".$_PROV."_"; }
     if ( $_PLAT!=0 ) { $out_file .= "Plat".$_PLAT."_"; }
     $out_file = $_REPT."_".$_FROMYM."_".$_TOYM."_by_".$_VIEW.".csv";
-    header( 'Content-Type: text/csv' );
-    header( 'Content-Disposition: attachment;filename='.$out_file);
+    // header( 'Content-Type: text/csv' );
+    header( 'Content-Type: application/csv;charset=UTF-8' );
+    header( 'Content-Disposition: attachment;filename='.$out_file );
     $fp = fopen('php://output', 'w');
     fprintf($fp,$rpt_info);
     fprintf($fp,$header);
@@ -546,11 +541,13 @@ if ( $_RUNIT ) {
       }
       if ( $_REPT == "JR1") {
         $output[] = $_data['Total_TTL'];
+        $output[] = $_data['Total_HTML'];
+        $output[] = $_data['Total_PDF'];
         foreach ( $year_mons as $_ym ) {
           $_col = prettydate($_ym);
           $output[] = $_data[$_col."_TTL"];
-          $output[] = $_data[$_col."_PDF"];
           $output[] = $_data[$_col."_HTML"];
+          $output[] = $_data[$_col."_PDF"];
         }
       } else if ( $_REPT == "JR5") {
         $output[] = $_data['Total'];

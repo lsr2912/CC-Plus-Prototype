@@ -21,6 +21,8 @@
 //
 include_once 'ccplus/sessions.inc.php';
 include_once 'ccplus/auth.inc.php';
+require_once('ccplus/Encoding.php');
+use \ForceUTF8\Encoding;
 
 $ERR = 0;
 
@@ -87,7 +89,7 @@ if ( $ERR == 0 ) {
       $_title = "Name Alias";
   }
  
-  // Open database as admin
+  // Open database as admin; set character set to utf8
   //
   global $ccp_adm_cnx;
   if ( !$ccp_adm_cnx ) { $ccp_adm_cnx = ccp_open_db("","Admin"); }
@@ -129,7 +131,7 @@ if ( $ERR == 0 ) {
     }
   }
 
-  //
+  // Put outpage header
   //
   print_page_header("CC-Plus " . $_title . " Import - Confirmation");
 ?>
@@ -151,7 +153,7 @@ if ( $ERR == 0 ) {
       $_qry  = "INSERT INTO " . $db_table;
       $_qry .= " (user_id,active,inst_id,email,password,first_name,last_name,phone,role,optin_alerts,password_change_required)";
       $_qry .= " VALUES (?,?,?,?,?,?,?,?,?,?,?)";
-      while ($data = fgetcsv($handle,0,",","'")) {
+      while ($data = Encoding::toUTF8(fgetcsv($handle,0,",","'")) ) {
         if ( $data[0] == "" ) { continue; }
         $rec_count++;
         if ( !is_numeric($data[0]) || $data[0]<=0 ) {
@@ -183,7 +185,7 @@ if ( $ERR == 0 ) {
       $_qry  = "INSERT INTO " . $db_table;
       $_qry .= " (prov_id,name,active,server_url,security,auth_username,auth_password,day_of_month)";
       $_qry .= " VALUES (?,?,?,?,?,?,?,?)";
-      while ($data = fgetcsv($handle,0,",","'")) {
+      while ($data = Encoding::toUTF8(fgetcsv($handle,0,",","'")) ) {
         if ( $data[0] == "" ) { continue; }
         $rec_count++;
         if ( !is_numeric($data[0]) || $data[0]<=0 ) {
@@ -221,7 +223,7 @@ if ( $ERR == 0 ) {
       $_s_qry  = "INSERT INTO sushi_settings (inst_id,prov_id,RequestorID,RequestorName,RequestorEmail,CustRefID,CustRefName)";
       $_s_qry .= " VALUES (?,?,?,?,?,?,?)";
       $_last_inst_id = 0;
-      while ($data = fgetcsv($handle,0,",","'")) {
+      while ($data = Encoding::toUTF8(fgetcsv($handle,0,",","'")) ) {
         if ( $data[0] == "" ) { continue; }
         $rec_count++;
         if ( !is_numeric($data[0]) || $data[0]<=0 ) {
@@ -277,7 +279,7 @@ if ( $ERR == 0 ) {
       break;
     case "Name":
       $_qry = "INSERT INTO " . $db_table . " (ID,inst_id,prov_id,alias) VALUES (?,?,?,?)";
-      while ($data = fgetcsv($handle,0,",","'")) {
+      while ($data = Encoding::toUTF8(fgetcsv($handle,0,",","'")) ) {
         if ( $data[0] == "" ) { continue; }
         $rec_count++;
         if ( !is_numeric($data[0]) || $data[0]<=0 ) {
