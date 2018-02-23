@@ -67,10 +67,12 @@ if ( $ERR == 0 ) {
       $records = ccp_get_users(0, $_POST['U_stat'], $_POST['U_inst'], $_POST['U_role']);
       $header = array('ID','Active','Inst_ID','Email','Password','First','Last','Phone','Role','GetsAlerts','PWChangeReq');
      
-      // Open output and send header row
-      // 
-      header( 'Content-Type: text/csv' );
+      // Open output with UTF-8 encoding and send header row
+      //
+      header( 'Content-Encoding: UTF-8');
+      header( 'Content-Type: text/csv; charset=UTF-8' );
       header( 'Content-Disposition: attachment;filename='.$out_file);
+      echo "\xEF\xBB\xBF";
       $fp = fopen('php://output', 'w');
       fputcsv($fp, array("",""));	// Excel thinks the CSV is an SYLK file if cell A-1 holds "ID"..
       fputcsv($fp, $header);
@@ -103,10 +105,12 @@ if ( $ERR == 0 ) {
         array_push($header,'Prov_ID','RequestorID','RequestorName','RequestorEmail','CustomerRefID','CustRefName');
       }
 
-      // Open output and send header row
+      // Open output with UTF-8 encoding and send header row
       // 
-      header( 'Content-Type: text/csv' );
+      header( 'Content-Encoding: UTF-8');
+      header( 'Content-Type: text/csv; charset=UTF-8' );
       header( 'Content-Disposition: attachment;filename='.$out_file);
+      echo "\xEF\xBB\xBF";
       $fp = fopen('php://output', 'w');
       fputcsv($fp, array("",""));	// Excel thinks the CSV is an SYLK file if cell A-1 holds "ID"..
       fputcsv($fp, $header);
@@ -139,10 +143,12 @@ if ( $ERR == 0 ) {
       $records = ccp_get_providers($_POST['P_stat']);
       $header = array('ID','Name','Active','ServerURL','Security','Auth_Username','Auth_Password','Ingest_Day');
      
-      // Open output and send header row
+      // Open output with UTF-8 encoding and send header row
       // 
-      header( 'Content-Type: text/csv' );
+      header( 'Content-Encoding: UTF-8');
+      header( 'Content-Type: text/csv; charset=UTF-8' );
       header( 'Content-Disposition: attachment;filename='.$out_file);
+      echo "\xEF\xBB\xBF";
       $fp = fopen('php://output', 'w');
       fputcsv($fp, array("",""));	// Excel thinks the CSV is an SYLK file if cell A-1 holds "ID"..
       fputcsv($fp, $header);
@@ -166,10 +172,12 @@ if ( $ERR == 0 ) {
       $records = ccp_get_aliases($_POST['N_inst'], $_POST['N_prov'], $_POST['N_istat'], $_POST['N_pstat']);
       $header = array('ID','Inst_ID','Prov_ID','Alias');
      
-      // Open output and send header row
+      // Open output with UTF-8 encoding and send header row
       // 
-      header( 'Content-Type: text/csv' );
+      header( 'Content-Encoding: UTF-8');
+      header( 'Content-Type: text/csv; charset=UTF-8' );
       header( 'Content-Disposition: attachment;filename='.$out_file);
+      echo "\xEF\xBB\xBF";
       $fp = fopen('php://output', 'w');
       fputcsv($fp, array("",""));	// Excel thinks the CSV is an SYLK file if cell A-1 holds "ID"..
       fputcsv($fp, $header);
