@@ -1,3 +1,13 @@
+Update : 2/26/2018
+  * htdocs::ReportHome.php
+    - new option to group output records by "Journal+Institution" (combined)
+    - CSV output now sets charset to UTF-8
+    - fixed header line for JR5 CSV output
+  * htdocs::login.php (typo fix)
+  * libraries::statsutils.inc.php
+    - Support added for combined output format to ccp_jr1_usage and ccp_jr5_usage
+  * libraries::counter4_processors.php
+    - JR1 now saves records even if total use is zero (used to skip them)
 Update : 2/23/2018
   * libraries::dbutils.inc.php
     - ccp_open_db now uses charset=utf8 when opening mysql connections

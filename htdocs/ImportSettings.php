@@ -89,7 +89,7 @@ if ( $ERR == 0 ) {
       $_title = "Name Alias";
   }
  
-  // Open database as admin; set character set to utf8
+  // Open database as admin
   //
   global $ccp_adm_cnx;
   if ( !$ccp_adm_cnx ) { $ccp_adm_cnx = ccp_open_db("","Admin"); }

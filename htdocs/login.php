@@ -51,7 +51,7 @@ if ( isset($_POST['conID']) && isset($_POST['email']) && isset($_POST['password'
      //
      if ( !isset($_SESSION['redirect_url']) ) {
 
-        $redirect_url .= CCPLUSROOTURL . "ReportHome.php";
+        $redirect_url = CCPLUSROOTURL . "ReportHome.php";
         if ( isset($_SESSION['role']) ) {
           if ( $_SESSION['role'] != 0  &&  $_SESSION['role'] <= MANAGER_ROLE ) {
             $redirect_url = CCPLUSROOTURL . "AdminHome.php";

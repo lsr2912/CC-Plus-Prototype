@@ -510,7 +510,7 @@ if (!function_exists("ccp_count_report_records")) {
 //             $_inst     : The institution ID to collect data for
 //             $_smo      : month (0 or YYYY-MM)	
 //             $_emo      : month (0 or YYYY-MM)
-//             $_view     : data view-by ("Jrnl", "Inst")
+//             $_view     : data view-by ("Jrnl", "Inst", "Both")
 //             $_ordby    : custom (optional) sort order - defaults to "Total_TTL"
 //
 //  Returns : $totals : an array of counts
@@ -537,7 +537,10 @@ if (!function_exists("ccp_jr1_usage")) {
     //
     if ( $_view == "Inst" ) {
       $_qry  = "SELECT Inst.name as Title, Prov.name as provider, Plat.name as platform,";
-    } else {
+    } else if ( $_view == "Both" ) {
+      $_qry  = "SELECT Jrnl.Title as Title, Prov.name as provider, Plat.name as platform,";
+      $_qry .= "Inst.name as inst_name,DOI,PropID,ISSN,eISSN,";
+    } else {	// view-by-journal
       $_qry  = "SELECT Jrnl.Title as Title, Prov.name as provider, Plat.name as platform,";
       $_qry .= "DOI,PropID,ISSN,eISSN,";
     }
@@ -552,7 +555,10 @@ if (!function_exists("ccp_jr1_usage")) {
     $_qry .= " INNER JOIN provider AS Prov ON Prov.prov_id=Data.prov_id";
     if ( $_view == "Inst" ) {
       $_qry .= " INNER JOIN institution AS Inst ON Inst.inst_id=Data.inst_id";
-    } else {
+    } else if ( $_view == "Both" ) {
+      $_qry .= " INNER JOIN ccplus_global.Journal AS Jrnl ON Jrnl.ID=Data.jrnl_id";
+      $_qry .= " INNER JOIN institution AS Inst ON Inst.inst_id=Data.inst_id";
+    } else {	// view-by-journal
       $_qry .= " INNER JOIN ccplus_global.Journal AS Jrnl ON Jrnl.ID=Data.jrnl_id";
     }
 
@@ -575,7 +581,11 @@ if (!function_exists("ccp_jr1_usage")) {
       $_where .= "Data.inst_id=$_inst";
     }
     if ( $_where != "" ) { $_qry .= " WHERE " . $_where; }
-    $_qry .= " GROUP BY Title,provider,platform";
+    if ( $_view == "Both" ) {
+      $_qry .= " GROUP BY Title,inst_name,provider,platform";
+    } else {
+      $_qry .= " GROUP BY Title,provider,platform";
+    }
     $_qry .= " ORDER BY ";
     $_qry .= ($_ordby=="") ? "Total_TTL DESC" : $_ordby;
 
@@ -631,7 +641,10 @@ if (!function_exists("ccp_jr5_usage")) {
     //
     if ( $_view == "Inst" ) {
       $_qry  = "SELECT Inst.name as Title, Prov.name as provider, Plat.name as platform";
-    } else {
+    } else if ( $_view == "Both" ) {
+      $_qry  = "SELECT Jrnl.Title as Title, Prov.name as provider, Plat.name as platform,";
+      $_qry .= "Inst.name as inst_name,DOI,PropID,ISSN,eISSN";
+    } else {	// view-by-journal
       $_qry  = "SELECT Jrnl.Title as Title, Prov.name as provider, Plat.name as platform,";
       $_qry .= "DOI,PropID,ISSN,eISSN";
     }
@@ -653,7 +666,10 @@ if (!function_exists("ccp_jr5_usage")) {
     $_qry .= " INNER JOIN provider AS Prov ON Prov.prov_id=Data.prov_id";
     if ( $_view == "Inst" ) {
       $_qry .= " INNER JOIN institution AS Inst ON Inst.inst_id=Data.inst_id";
-    } else {
+    } else if ( $_view == "Both" ) {
+      $_qry .= " INNER JOIN ccplus_global.Journal AS Jrnl ON Jrnl.ID=Data.jrnl_id";
+      $_qry .= " INNER JOIN institution AS Inst ON Inst.inst_id=Data.inst_id";
+    } else {	// view-by-journal
       $_qry .= " INNER JOIN ccplus_global.Journal AS Jrnl ON Jrnl.ID=Data.jrnl_id";
     }
 
@@ -676,7 +692,11 @@ if (!function_exists("ccp_jr5_usage")) {
       $_where .= "Data.inst_id=$_inst";
     }
     if ( $_where != "" ) { $_qry .= $_where; }
-    $_qry .= " GROUP BY Title,provider,platform";
+    if ( $_view == "Both" ) {
+      $_qry .= " GROUP BY Title,inst_name,provider,platform";
+    } else {
+      $_qry .= " GROUP BY Title,provider,platform";
+    }
     $_qry .= " ORDER BY Total DESC";
 
     // Run the query

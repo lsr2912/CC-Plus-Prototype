@@ -76,6 +76,8 @@ $filt_insts = ccp_stats_ID_list("INST",$_REPT,$_FROMYM,$_TOYM,$_PROV,$_PLAT,0);
 if ( count($filt_insts) > 1 ) {
   array_unshift($filt_insts,array("inst_id"=>0,"name"=>"ALL"));
 }
+$all_views = array("Jrnl"=>"By Journal","Inst"=>"By Institution",
+                   "Both"=>"By Journal + Institution");
 
 // Get usage counts
 // (default to JR1 if $_REPT is screwy)
@@ -208,12 +210,11 @@ if ( $_DEST == "HTML" ) {
       <td align="left">
         <select name="View" id="View">
 <?php
-    print "          <option value=\"Jrnl\"";
-    print ($_VIEW=="Jrnl") ? " selected>" : ">";
-    print "By-Journal</option>\n";
-    print "          <option value=\"Inst\"";
-    print ($_VIEW=="Inst") ? " selected>" : ">";
-    print "By-Institution</option>\n";
+  foreach ( $all_views as $_key=>$_str ) {
+    print "          <option value=\"" . $_key . "\"";
+    print ( $_VIEW == $_key ) ? " selected" : "";
+    print ">" . $_str . "</option>\n";
+  }
 ?>
         </select>
       </td>
@@ -331,13 +332,16 @@ if ( $_RUNIT ) {
         <th data-priority='1' id='Provider' align='left'>Provider</th>
         <th data-priority='3' id='Platform' class='columnSelector-false' align='left'>Platform</th>
 <?php
-      if ( $_VIEW == "Jrnl" ) {
+      if ( $_VIEW == "Jrnl" || $_VIEW == "Both" ) {
 ?>
         <th data-priority='3' id='DOI' class='columnSelector-false' data-selector-name='DOI' align='left'>Journal DOI</th>
         <th data-priority='3' id='PropID' class='columnSelector-false' data-selector-name='Prop.ID' align='left'>Proprietary ID</th>
         <th data-priority='3' id='ISSN' class='columnSelector-false' data-selector-name='ISSN' align='left'>Print ISSN</th>
         <th data-priority='3' id='eISSN' class='columnSelector-false' data-selector-name='eISSN' align='left'>Online ISSN</th>
 <?php
+        if ( $_VIEW == "Both" ) {
+          print "        <th data-priority='2' id='Inst' data-selector-name='Inst' align='left'>Institution</th>\n";
+        }
       }
     }
 
@@ -370,11 +374,14 @@ if ( $_RUNIT ) {
           $row .= "        <td align='left'>" . $_data['Title'] . "</td>\n";
           $row .= "        <td align='left'>" . $_data['provider'] . "</td>\n";
           $row .= "        <td align='left'>" . $_data['platform'] . "</td>\n";
-          if ( $_VIEW == "Jrnl" ) {
+          if ( $_VIEW == "Jrnl" || $_VIEW == "Both" ) {
             $row .= "        <td align='left'>" . $_data['DOI'] . "</td>\n";
             $row .= "        <td align='left'>" . $_data['PropID'] . "</td>\n";
             $row .= "        <td align='left'>" . $_data['ISSN'] . "</td>\n";
             $row .= "        <td align='left'>" . $_data['eISSN'] . "</td>\n";
+          }
+          if ( $_VIEW == "Both" ) {
+            $row .= "        <td align='left'>" . $_data['inst_name'] . "</td>\n";
           }
           $row .= "        <td align='right'>" . $_data[$_ttl_col] . "</td>\n";
           foreach ( $year_mons as $_ym ) {
@@ -431,11 +438,14 @@ if ( $_RUNIT ) {
           $row .= "        <td align='left'>" . $_data['Title'] . "</td>\n";
           $row .= "        <td align='left'>" . $_data['provider'] . "</td>\n";
           $row .= "        <td align='left'>" . $_data['platform'] . "</td>\n";
-          if ( $_VIEW == "Jrnl" ) {
+          if ( $_VIEW == "Jrnl" || $_VIEW == "Both" ) {
             $row .= "        <td align='left'>" . $_data['DOI'] . "</td>\n";
             $row .= "        <td align='left'>" . $_data['PropID'] . "</td>\n";
             $row .= "        <td align='left'>" . $_data['ISSN'] . "</td>\n";
             $row .= "        <td align='left'>" . $_data['eISSN'] . "</td>\n";
+          }
+          if ( $_VIEW == "Both" ) {
+            $row .= "        <td align='left'>" . $_data['inst_name'] . "</td>\n";
           }
           $row .= "        <td align='left'>" . $_data['Total'] . "</td>\n";
           foreach ( $yops as $_yop ) {
@@ -491,8 +501,9 @@ if ( $_RUNIT ) {
     //
     $header  = ( $_VIEW == "Inst" ) ? "Institution" : "Journal";
     $header .= ",Provider,Platform";
-    if ( $_VIEW == "Jrnl" ) {
+    if ( $_VIEW=="Jrnl" || $_VIEW=="Both" ) {
       $header .= ",Journal DOI,Proprietary ID,Print ISSN,Online ISSN";
+      if ( $_VIEW=="Both" ) { $header .= ",Institution"; }
     }
     if ( $_REPT == "JR1" ) {
       $header .= ",Reporting Period Total,Reporting Period HTML,Reporting Period PDF";
@@ -507,7 +518,7 @@ if ( $_RUNIT ) {
       $yops = ccp_get_yop_columns();
       foreach ( $yops as $_yop ) {
         if ( $_yop == "YOP_InPress" ) { continue; }
-        $header .= $_yop;
+        $header .= "," . $_yop;
       }
     }
     $header .= "\n";
@@ -518,10 +529,13 @@ if ( $_RUNIT ) {
     if ( $_INST!=0 ) { $out_file .= "Inst".$_INST."_"; }
     if ( $_PROV!=0 ) { $out_file .= "Prov".$_PROV."_"; }
     if ( $_PLAT!=0 ) { $out_file .= "Plat".$_PLAT."_"; }
-    $out_file = $_REPT."_".$_FROMYM."_".$_TOYM."_by_".$_VIEW.".csv";
-    // header( 'Content-Type: text/csv' );
+    // $out_file = $_REPT."_".$_FROMYM."_".$_TOYM."_by_".$_VIEW.".csv";
+    $out_file = $_REPT."_".$_FROMYM."_".$_TOYM."_";
+    $out_file .= ($_VIEW == "Both") ? "Combined.csv" : "by_".$_VIEW.".csv";
+    header( 'Content-Encoding: UTF-8');
     header( 'Content-Type: application/csv;charset=UTF-8' );
     header( 'Content-Disposition: attachment;filename='.$out_file );
+    echo "\xEF\xBB\xBF";
     $fp = fopen('php://output', 'w');
     fprintf($fp,$rpt_info);
     fprintf($fp,$header);
@@ -533,11 +547,12 @@ if ( $_RUNIT ) {
       $output[] = $_data['Title'];
       $output[] = $_data['provider'];
       $output[] = $_data['platform'];
-      if ( $_VIEW == "Jrnl" ) {
+      if ( $_VIEW=="Jrnl" || $_VIEW=="Both" ) {
         $output[] = $_data['DOI'];
         $output[] = $_data['PropID'];
         $output[] = $_data['ISSN'];
         $output[] = $_data['eISSN'];
+        if ( $_VIEW=="Both" ) { $output[] = $_data['inst_name']; }
       }
       if ( $_REPT == "JR1") {
         $output[] = $_data['Total_TTL'];

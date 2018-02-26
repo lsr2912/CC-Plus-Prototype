@@ -15,6 +15,11 @@
 // If not, see <http://www.gnu.org/licenses/>.
 //--------------------------------------------------------------------------------------
 // Process a JR1 counter report
+//
+//  This function expects to be aimed at a COUNTER-4 JR1 report containing ONE MONTH.
+//  Because the "Reporting Period" values for PDF and HTML are not broken out by-month,
+//  the only way to collect-store-and-report them is via single-month imports.
+//
 // Arguments: $in_csv  : filename of CSV to be loaded
 //            $prov_id : vendor_id for the report
 //            $inst_id : vendor_id for the report
@@ -117,7 +122,8 @@ if (!function_exists("process_counter_JR1v4")) {
 
       // Run the query, but don't bother writing records of all zero
       //
-      if ( $_TTL>0 && $journal['ID']>0) {
+      // if ( $_TTL>0 && $journal['ID']>0) {
+      if ( $journal['ID']>0) {
 
         // Setup variables for the insert 
         //
