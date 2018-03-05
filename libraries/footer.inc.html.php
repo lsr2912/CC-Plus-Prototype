@@ -17,6 +17,6 @@
 ?>
     <div id="footer">
       <p>
-        &copy; 2010-<?php echo date("Y"); ?>
+        &copy; 2010-<?php echo date("Y"); ?> : Updated : 5-Mar-18
       </p>
     </div>

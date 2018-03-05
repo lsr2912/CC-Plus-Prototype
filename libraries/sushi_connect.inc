@@ -50,7 +50,7 @@
     catch (Exception $e)
     {
       $error = $e->faultstring . "(" . $e->faultcode . ")";
-      fwrite(STDERR,"Failed to connect to $Provider: $error\n");
+      print "Failed to connect to $Provider: $error\n";
     }
 
   // Otherwise, connect the WSDL without a username/password
@@ -67,7 +67,7 @@
     catch (Exception $e)
     {
       $error = $e->faultstring . "(" . $e->faultcode . ")";
-      fwrite(STDERR,"Failed to connect to $Provider: $error\n");
+      print "Failed to connect to $Provider: $error\n";
     }
 
   }

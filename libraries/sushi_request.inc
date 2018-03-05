@@ -86,8 +86,10 @@
           } catch(Exception $e) {
 
             $error = $e->faultstring . "(" . $e->faultcode . ")";
-            fwrite(STDERR,"Failed to GetReport from $Provider: $error\n");
-            ccp_log_failed_ingest($_PROV, $_INST, $_settings['ID'], $_Rpt['ID'], $Report, $yearmon, "SUSHI", $error, $retryID);
+            print "Failed to GetReport from $Provider: $error\n";
+            if ( isset($_settings['ID']) ) {
+              ccp_log_failed_ingest($_PROV,$_INST,$_settings['ID'],$_Rpt['ID'],$Report,$yearmon,"SUSHI",$error,$retryID);
+            }
             return 1;
           }
 
@@ -101,11 +103,13 @@
           $output = 'Unknown, generic SUSHI error';
           if ( $report === FALSE ) {
             $errors = libxml_get_errors();
-            fwrite(STDERR,"ERROR loading $Report from $Provider for $Begin to $End\n");
+            print "ERROR loading $Report from $Provider for $Begin to $End\n";
             foreach ($errors as $error) {
               $output = "XML Error (" . $error->code . ") : " . $error->message . "\n";
-              fwrite(STDERR,$output);
-              ccp_log_failed_ingest($_PROV, $_INST, $_settings['ID'], $_Rpt['ID'], $Report, $yearmon, "XML", $output, $retryID);
+              print $output;
+              if ( isset($_settings['ID']) ) {
+                ccp_log_failed_ingest($_PROV,$_INST,$_settings['ID'],$_Rpt['ID'],$Report,$yearmon,"XML",$output,$retryID);
+              }
             }
             $errors = libxml_clear_errors();
             return 1;
@@ -131,9 +135,9 @@
               if ( $e_num==4001 || $e_num==4002 )   { $retry = true; }	// Wiley
               if ( $retry && $queue_retries<SUSHI_RETRY_LIMIT ) {
                  $queue_retries++;
-                 fwrite(STDERR, "Queued ... sleeping: " . $e_msg . "(" . $e_num . ") ...");
+                 print "Queued ... sleeping: " . $e_msg . "(" . $e_num . ") ...";
                  sleep(SUSHI_RETRY_SLEEP);
-                 fwrite(STDERR, "Retrying\n");
+                 print "Retrying\n";
                  $req_state = "queued";
                  continue;
               } else {
@@ -145,9 +149,11 @@
                  }
                  $req_state = "done";
               }
-              fwrite(STDERR,$output."\n");
+              print $output."\n";
               if ( $req_state != "queued" ) {
-                ccp_log_failed_ingest($_PROV, $_INST, $_settings['ID'], $_Rpt['ID'], $Report, $yearmon, "XML", $output, $retryID);
+                if ( isset($_settings['ID']) ) {
+                  ccp_log_failed_ingest($_PROV,$_INST,$_settings['ID'],$_Rpt['ID'],$Report,$yearmon,"XML",$output,$retryID);
+                }
                 return 1;
               }
             }

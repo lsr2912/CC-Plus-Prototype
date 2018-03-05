@@ -57,7 +57,7 @@ $(document).ready(function() {
             if ( value.status == "Saved" ) {
               row += " class=\"ing_succ\">Saved</td>\n";
             } else if ( value.status == "Failed" ) {
-              row += " class=\"ing_fail\">Failed</td>\n";
+              row += " class=\"ing_fail\" FID=\""+value.failed_ID+"\">Failed</td>\n";
             } else if ( value.status == "Deleted" ) {
               row += " class=\"ing_dele\">Deleted</td>\n";
             } else {

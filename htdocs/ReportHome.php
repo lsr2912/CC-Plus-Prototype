@@ -261,12 +261,12 @@ if ( $_DEST == "HTML" ) {
       </td>
     </tr>
     <tr>
-      <td align="left"><label for="JR1Col" id="JR1ColLab"><h4>Counter Metric</h4></label></td>
+      <td align="left"><label for="JR1Col" id="JR1ColLab"><h4>Display Counter Metric</h4></label></td>
       <td>&nbsp;</td>
       <td align="left">
         <select name="JR1Col" id="JR1Col">
 <?php
-    $_opts = array("TTL"=>"Total Accesses", "PDF"=>"PDF Accesses", "HTML"=>"HTML Accesses");
+    $_opts = array("TTL"=>"Full Text Total", "PDF"=>"Full Text PDF", "HTML"=>"Full Text HTML");
     foreach ( $_opts as $key=>$str ) {
       print "          <option value=\"" . $key . "\"";
       print ($_JR1COL == $key) ? " selected>" : ">";

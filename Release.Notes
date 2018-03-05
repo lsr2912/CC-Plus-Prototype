@@ -1,3 +1,18 @@
+Update : 3/5/2018
+  * agents::Sushi_ingest.php
+    - Limit log entries to once/consortium and only when if requests happen (less chatty)
+  * htdocs::ReportHome.php
+    - Cosmetic change of dropdown labels
+  * htdocs::ManualIngest.php
+    - replaced "write" to STDOUT with "print" statement
+  * htdocs::maning_js.php
+    - added return status flagging if no settings found
+  * htdocs/include::Ingest_Log.js
+    - ID value (FID) added for stat=failed when rebuilding table rows
+  * htdocs/include::Manual_Ingest.js
+    - Form fields won't try to update if maning_js.php returns error
+  * libraries::sushi_connect, sushi_request.inc, sushi_wsse.inc
+    - replaced "writes" to STDERR with "print" statements
 Update : 2/26/2018
   * htdocs::ReportHome.php
     - new option to group output records by "Journal+Institution" (combined)

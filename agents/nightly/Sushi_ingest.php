@@ -114,15 +114,12 @@ if ( $con_id != 0 ) {
 //
 foreach ( $consortia as $_Con ) {
 
-  if ( $con_id == 0 ) {	// If running multiple consortia, print an info line
-    fwrite(STDOUT,"Sushi Requests Begin For Consortium: " . $_Con['ccp_key'] . "\n");
-  }
-
   // Open database handles (force new ones) for the consortium
   //
   $_db = "ccplus_" . $_Con['ccp_key'];
   $ccp_usr_cnx = ccp_open_db($_db, "User", 1);
   $ccp_adm_cnx = ccp_open_db($_db, "Admin", 1);
+  $logmsg = false;
 
   // Setup the $providers array to hold ID's to process
   //
@@ -149,6 +146,13 @@ foreach ( $consortia as $_Con ) {
     // An empty array means "not today", or no settings exist
     //
     if ( count($ingest_settings) == 0 ) { continue; }
+
+    // Add a message to the log (once/consortium) when requests are made
+    //
+    if ( !$logmsg ) {
+      fwrite(STDOUT,"Sushi Requests Begin For Consortium: " . $_Con['ccp_key'] . "\n");
+      $logmsg = true;
+    }
 
     // Connect to service, setup SOAP client
     //

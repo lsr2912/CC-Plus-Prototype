@@ -56,7 +56,7 @@
     catch (Exception $e)
       {
         $error = $e->getMessage();
-        fwrite(STDERR,"Failed to set SoapHeaders for $Provider: $error\n");
+        print "Failed to set SoapHeaders for $Provider: $error\n";
         ccp_log_failed_ingest($_PROV, 0, 0, 0, "ALL", $yearmon, "SERVER", $error, $retryID);
       }
 ?>

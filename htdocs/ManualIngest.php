@@ -393,7 +393,7 @@ if ( $ERR == 0 ) {
     //
     $_res = include('ccplus/sushi_request.inc');
     if ( !$_res ) {
-      fwrite(STDOUT,"Cannot include CC-Plus SUSHI request template!\n");
+      print "Cannot include CC-Plus SUSHI request template!\n";
       exit;
     }
 

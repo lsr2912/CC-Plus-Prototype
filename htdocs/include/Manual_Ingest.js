@@ -41,16 +41,18 @@ $(document).ready(function() {
   $("#Prov").change(function(){ // change function of listbox
     if ( $("#Inst").val()!="" ) {
       $.post("maning_js.php", {"prov_id":$('#Prov').val(),"inst_id":$('#Inst').val()}, function(return_data,status){
-        $("#Server").val(return_data.settings.server_url);
-        $("#Sushi_Auth").val(return_data.settings.security);
-        $("#Sushi_Auth").change();
-        $("#auth_user").val(return_data.settings.auth_username);
-        $("#auth_pass").val(return_data.settings.auth_password);
-        $("#ReqID").val(return_data.settings.RequestorID);
-        $("#ReqName").val(return_data.settings.RequestorName);
-        $("#ReqEmail").val(return_data.settings.RequestorEmail);
-        $("#CustID").val(return_data.settings.CustRefID);
-        $("#CustName").val(return_data.settings.CustRefName);
+        if (typeof return_data.error === 'undefined' || !return_data.error) {
+          $("#Server").val(return_data.settings.server_url);
+          $("#Sushi_Auth").val(return_data.settings.security);
+          $("#Sushi_Auth").change();
+          $("#auth_user").val(return_data.settings.auth_username);
+          $("#auth_pass").val(return_data.settings.auth_password);
+          $("#ReqID").val(return_data.settings.RequestorID);
+          $("#ReqName").val(return_data.settings.RequestorName);
+          $("#ReqEmail").val(return_data.settings.RequestorEmail);
+          $("#CustID").val(return_data.settings.CustRefID);
+          $("#CustName").val(return_data.settings.CustRefName);
+        }
       },"json");
     }
   })
@@ -60,16 +62,18 @@ $(document).ready(function() {
   $("#Inst").change(function(){ // change function of listbox
     if ( $("#Prov").val()!="" ) {
       $.post("maning_js.php", {"prov_id":$('#Prov').val(),"inst_id":$('#Inst').val()}, function(return_data,status){
-        $("#Server").val(return_data.settings.server_url);
-        $("#Sushi_Auth").val(return_data.settings.security);
-        $("#Sushi_Auth").change();
-        $("#auth_user").val(return_data.settings.auth_username);
-        $("#auth_pass").val(return_data.settings.auth_password);
-        $("#ReqID").val(return_data.settings.RequestorID);
-        $("#ReqName").val(return_data.settings.RequestorName);
-        $("#ReqEmail").val(return_data.settings.RequestorEmail);
-        $("#CustID").val(return_data.settings.CustRefID);
-        $("#CustName").val(return_data.settings.CustRefName);
+        if (typeof return_data.error === 'undefined' || !return_data.error) {
+          $("#Server").val(return_data.settings.server_url);
+          $("#Sushi_Auth").val(return_data.settings.security);
+          $("#Sushi_Auth").change();
+          $("#auth_user").val(return_data.settings.auth_username);
+          $("#auth_pass").val(return_data.settings.auth_password);
+          $("#ReqID").val(return_data.settings.RequestorID);
+          $("#ReqName").val(return_data.settings.RequestorName);
+          $("#ReqEmail").val(return_data.settings.RequestorEmail);
+          $("#CustID").val(return_data.settings.CustRefID);
+          $("#CustName").val(return_data.settings.CustRefName);
+        }
       },"json");
     }
   })

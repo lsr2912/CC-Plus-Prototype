@@ -36,9 +36,14 @@ if ( $_PROV==0 || $_INST==0 ) {
 // Pull settings (function returns a 2-dim array)
 //
 $ingest_settings = ccp_get_sushi_settings( $_INST, $_PROV );
+if ( count($ingest_settings) > 0 ) { 
+  $return = $ingest_settings[0];
+} else {
+  $return = array ("error"=>1 , "message"=>$ERROR);
+}
 
 // Build and return JSON
 //
-$main = array('settings'=>$ingest_settings[0]);
+$main = array('settings'=>$return);
 echo json_encode($main); 
 ?>
