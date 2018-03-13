@@ -20,11 +20,11 @@
 require_once('ccplus/dbutils.inc.php');
 include_once 'ccplus/auth.inc.php';
 
-// Check if manager, set flag and pass to JS with records
+// Check if admin, set flag and pass to JS with records
 //
-$Manager = 0;
+$is_admin = 0;
 if ( isset($_SESSION['role']) ) {
-  if ( $_SESSION['role'] <= MANAGER_ROLE ) { $Manager = 1; }
+  if ( $_SESSION['role'] == ADMIN_ROLE ) { $is_admin = 1; }
 }
 
 // Handle possible input fields
@@ -40,7 +40,7 @@ $records = ccp_get_alerts($stat, $prov);
 
 // Return output w/ JSON
 //
-$main = array('records'=>$records, 'manager'=>$Manager);
+$main = array('records'=>$records, 'admin'=>$is_admin);
 echo json_encode($main); 
 
 ?>

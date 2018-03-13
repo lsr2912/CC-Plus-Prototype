@@ -31,8 +31,16 @@ if ( isset($_POST['INST']) ) { $_INST = $_POST['INST']; }
 // Check rights; only proceed if role is Admin or manager modifying their own inst
 // 
 $ERR = 0;
-if ( ($_SESSION['role'] != ADMIN_ROLE) ||
-     ($_SESSION['role'] == MANAGER_ROLE) && ($_INST != $_SESSION['user_inst']) ) { $ERR = 1; }
+if ( $_SESSION['role'] != ADMIN_ROLE) {
+  $ERR = 1;
+  if ( $_SESSION['role'] == MANAGER_ROLE ) {
+    if ( $_INST == $_SESSION['user_inst'] ) {
+      $ERR = 0;
+    } else {
+      $ERR = 3;
+    }
+  }
+}
 
 if ( !isset($_POST['Iname']) || !isset($_POST['Istat']) || !isset($_POST['notes']) ||
      (!isset($_POST['Save']) && !isset($_POST['ADD'])) ) { $ERR = 2; }
@@ -76,17 +84,14 @@ if ($ERR == 0) {
   // For create new inst, build separate insert queries for the institution table,
   // and - if PROV is set - the sushi_settings table
   //
-  $_InstAdmin = 0;
-  if ( isset($_POST['InstAdmin']) ) { $_InstAdmin = $_POST['InstAdmin']; }
-
   if ( $QueryType == "Create" ) {
 
     // Put POST values in an array
     //
-    $inst_args = array($_POST['Iname'], $_POST['Istat'], $_InstAdmin, $_POST['notes']);
+    $inst_args = array($_POST['Iname'], $_POST['Istat'], $_POST['notes']);
     $_qry  = "INSERT INTO institution";
-    $_qry .= " (name,active,admin_userid,notes)";
-    $_qry .= " VALUES (?,?,?,?)";
+    $_qry .= " (name,active,notes)";
+    $_qry .= " VALUES (?,?,?)";
 
     // execute the institution table insert
     //
@@ -102,7 +107,7 @@ if ($ERR == 0) {
     //
     $_INST = $ccp_adm_cnx->lastInsertId();
     if ( $_INST == 0 ) {
-      $ERR = 3;
+      $ERR = 4;
     }
 
     // Setup POST values for the sushi settings in an array
@@ -133,9 +138,9 @@ if ($ERR == 0) {
   //
   } else {
 
-    $inst_args = array($_POST['Iname'], $_POST['Istat'], $_InstAdmin, $_POST['notes'], $_INST);
+    $inst_args = array($_POST['Iname'], $_POST['Istat'], $_POST['notes'], $_INST);
 
-    $_qry  = "UPDATE institution SET name=?, active=?, admin_userid=?, notes=?";
+    $_qry  = "UPDATE institution SET name=?, active=?, notes=?";
     $_qry .= "WHERE inst_id=?";
 
     try {
@@ -221,28 +226,31 @@ if ($ERR == 0) {
     //
     $aliases_args = array();
     $aliases_qry = "INSERT INTO institution_aliases (inst_id,prov_id,alias) VALUES";
-    $_first = TRUE;
+    $_ac = 0;
     foreach ( $_POST['inst_alias'] as $_alias ) {
+      if ( $_alias == "" ) { continue; }
       array_push($aliases_args,$_INST);
       array_push($aliases_args,$_PROV);
       array_push($aliases_args,$_alias);
-      if ( $_first ) {
+      if ( $_ac == 0 ) {
          $aliases_qry .= " ";
-         $_first = FALSE;
       } else {
          $aliases_qry .= ",";
       }
+      $_ac++;
       $aliases_qry .= "(?,?,?)";
     }
 
     // execute the insert
     //
-    try {
-      $sth = $ccp_adm_cnx->prepare($aliases_qry);
-      $sth->execute($aliases_args);
-    } catch (PDOException $e) {
-      echo $e->getMessage();
-      exit();
+    if ( $_ac > 0 ) {	// if zero, they were all null/blank
+      try {
+        $sth = $ccp_adm_cnx->prepare($aliases_qry);
+        $sth->execute($aliases_args);
+      } catch (PDOException $e) {
+        echo $e->getMessage();
+        exit();
+      }
     }
 
   }
@@ -264,7 +272,11 @@ if ($ERR > 0) {
        break;
      case 2:
        print "Invalid or missing arguments.";
+       break;
      case 3:
+       print "You can only modify accounts for your own Institution.";
+       break;
+     case 4:
        print "Invalid ID returned for new database entry!";
    }
    print "<br /><br />You can return to the <a href='ManageInst.php'>Institution Management Page</a>,\n";

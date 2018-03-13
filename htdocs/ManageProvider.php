@@ -38,11 +38,11 @@ if ( isset($_REQUEST['Prov']) ) { $_PID = $_REQUEST['Prov']; }
 //   if ( isset($_REQUEST['Ptype']) ) { $_TYP = $_REQUEST['Ptype']; }
 // }
 
-// Admins and Editors can use this page
+// Only Admins use this page
 //
 $_role = USER_ROLE;
 if ( isset($_SESSION['role']) ) { $_role = $_SESSION['role']; }
-if ( $_role <= MANAGER_ROLE ) {
+if ( $_role == ADMIN_ROLE ) {
 
   // Setup arrays to hold initial/default form values
   //
@@ -137,13 +137,13 @@ if ( $_role <= MANAGER_ROLE ) {
       <td align="left">
         <select name="Prov" id="Prov">
 <?php
-// Populate the initial Provider list
-//
-foreach ($_all_providers as $p) {
-  print "          <option value=" . $p['prov_id'];
-  if ( $_provider['prov_id'] == $p['prov_id'] ) { print " selected "; }
-  print ">" . $p['name'] . "</option>\n";
-}
+    // Populate the initial Provider list
+    //
+    foreach ($_all_providers as $p) {
+      print "          <option value=" . $p['prov_id'];
+      if ( $_provider['prov_id'] == $p['prov_id'] ) { print " selected "; }
+      print ">" . $p['name'] . "</option>\n";
+    }
 ?>
         </select>
       </td>
@@ -160,12 +160,12 @@ foreach ($_all_providers as $p) {
       <td align="left">
         <select name="Pstat" id="Pstat">
 <?php
-        print "          <option value=1";
-        print ($_provider['active'] == 1 ) ? " selected" : "";
-        print ">Active</option>\n";
-        print "          <option value=0";
-        print ($_provider['active'] == 0 ) ? " selected" : "";
-        print ">Inactive</option>\n";
+    print "          <option value=1";
+    print ($_provider['active'] == 1 ) ? " selected" : "";
+    print ">Active</option>\n";
+    print "          <option value=0";
+    print ($_provider['active'] == 0 ) ? " selected" : "";
+    print ">Inactive</option>\n";
 ?>
         </select>
       </td>
@@ -173,9 +173,9 @@ foreach ($_all_providers as $p) {
     <tr><td colspan="5">&nbsp;</td></tr>
 <?php
   }
-//
-// Build remaining form fields regardless of new/existing
-//
+  //
+  // Build remaining form fields regardless of new/existing
+  //
 ?>
 
     <tr>
@@ -231,12 +231,12 @@ foreach ($_all_providers as $p) {
       <td colspan="4" align="left"> &nbsp;
         <div id="C4_Reports">
 <?php
-  foreach ( $merged_reports['4'] as $_rpt ) {
-    print "          <label for=\"CB_" . $_rpt['ID'] . "\">" . $_rpt['Report_Name'] . "</label>";
-    print "<input type=\"checkbox\" name=\"reports_v4[]\" id=\"CB_" . $_rpt['ID'] . "\" value=\"" . $_rpt['ID'] . "\"";
-    print ($_rpt['selected'] == "on") ? " checked" : "";
-    print " />&nbsp; &nbsp; \n";
-  }
+    foreach ( $merged_reports['4'] as $_rpt ) {
+      print "          <label for=\"CB_" . $_rpt['ID'] . "\">" . $_rpt['Report_Name'] . "</label>";
+      print "<input type=\"checkbox\" name=\"reports_v4[]\" id=\"CB_" . $_rpt['ID'] . "\" value=\"" . $_rpt['ID'] . "\"";
+      print ($_rpt['selected'] == "on") ? " checked" : "";
+      print " />&nbsp; &nbsp; \n";
+    }
 ?>
         </div>
       </td>
@@ -250,12 +250,12 @@ foreach ($_all_providers as $p) {
       <td colspan="4" align="left"> &nbsp;
         <div id="C5_Reports">
 <?php
-  foreach ( $merged_reports['5'] as $_rpt ) {
-    print "          <label for=\"CB_" . $_rpt['ID'] . "\">" . $_rpt['Report_Name'] . "</label>";
-    print "<input type=\"checkbox\" name=\"reports_v5[]\" id=\"CB_" . $_rpt['ID'] . "\" value=\"" . $_rpt['ID'] . "\"";
-    print ($_rpt['selected'] == "on") ? " checked" : "";
-    print " />&nbsp; &nbsp; \n";
-  }
+    foreach ( $merged_reports['5'] as $_rpt ) {
+      print "          <label for=\"CB_" . $_rpt['ID'] . "\">" . $_rpt['Report_Name'] . "</label>";
+      print "<input type=\"checkbox\" name=\"reports_v5[]\" id=\"CB_" . $_rpt['ID'] . "\" value=\"" . $_rpt['ID'] . "\"";
+      print ($_rpt['selected'] == "on") ? " checked" : "";
+      print " />&nbsp; &nbsp; \n";
+    }
 ?>
         </div>
       </td>
@@ -272,23 +272,9 @@ foreach ($_all_providers as $p) {
       <td align="right">
         <input type="button" name="Cancel" value="Cancel">
       </td>
-<?php
-// Admin gets 3rd option (Delete)
-//
-if ( $_role == ADMIN_ROLE ) {
-?>
       <td align="right"><font size="+1">
         <a href="ConfirmDelete.php?prov=<?php echo $_PID; ?>">Delete This Provider</a>
       </font></td>
-<?php
-// If not Admin, display only Save and Cancel
-//
-} else {
-?>
-      <td>&nbsp;</td>
-<?php
-}
-?>
     </tr>
   </table>
   </form>

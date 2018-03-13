@@ -56,7 +56,9 @@ And, if your web/httpd/apache server runs as "apache:apache", then:
 I imagine there are *better* ways to accomplish this, and am certainly
 open to suggestions to improve the functionality - and security - of
 the files/service. This being a first-pass, the easy_basic_brute_force
-method is currently in-use.
+method is currently in-use. It's also worth noting that this also means
+that the .CSV and .XLS files for all consortia within the installation
+are accessible to all users of the system (by changing the browser URL).
 
 Cron Automation
 ---------------

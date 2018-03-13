@@ -22,16 +22,24 @@
 include_once 'ccplus/sessions.inc.php';
 include_once 'ccplus/auth.inc.php';
 
-// Admins and Editors can use this page
+// Admins and Editors can use this page; set INST while
+// checking ROLE. Manager not allowed to create insts...
 //
-$ERR = 1;
-if ( isset($_SESSION['role']) ) {
-  if ( $_SESSION['role'] <= MANAGER_ROLE ) { $ERR = 0; }
-}
-// Set $_INST depending on input.
-//
+$ERR = 0;
 $_INST=0;
-if ( isset($_REQUEST['Inst']) ) { $_INST = $_REQUEST['Inst']; }
+$is_admin = false;
+if ( isset($_SESSION['role']) ) {
+  if ( $_SESSION['role'] == ADMIN_ROLE ) {
+    $is_admin = true;
+    if ( isset($_REQUEST['Inst']) ) { $_INST = $_REQUEST['Inst']; }
+  } else if ( $_SESSION['role'] == MANAGER_ROLE ) {
+    $_INST = $_SESSION['user_inst'];
+  } else {
+    $ERR = 1;
+  }
+} else {
+  $ERR = 1;
+}
 
 if ( $ERR == 0 ) {
 
@@ -42,14 +50,11 @@ if ( $ERR == 0 ) {
      $Inst['inst_id'] = 0;
      $Inst['name'] = "";
      $Inst['active'] = 1;
-     $Inst['admin_userid'] = 0;
      $Inst['notes'] = "";
      $Inst['type'] = "";
      $Inst['sushiIPRange'] = "";
      $Inst['shibURL'] = "";
      $Inst['fte'] = 0;
-     $users = array();
-     $admin_user = array();
 
   // If viewing/editing an existing record, query the database for
   // current settings and existing users. Aliases get initial values
@@ -57,15 +62,6 @@ if ( $ERR == 0 ) {
   //
   } else {
      $Inst = ccp_get_institutions($_INST);
-     $users = ccp_get_users_ui( $_INST );
-  }
-
-  // Get/set admin-user info
-  //
-  if ( $Inst['admin_userid'] > 0 ) {
-     $admin_user = ccp_get_users( $Inst['admin_userid'] );
-  } else {
-     $admin_user['user_id'] = 0;
   }
 
   //
@@ -114,39 +110,6 @@ if ( $ERR == 0 ) {
         </select>
       </td>
     </tr>
-<?php
-// If no users (other than admin) exist, or creating an inst...
-// suppress the admin-assign options since it would be empty anyway
-//
-if ( $_INST!=0 && count($users)>0 ) {
-?>
-    <tr><td colspan="7">&nbsp;</td></tr>
-    <tr>
-      <td colspan="3" align="right">
-        <label for="InstAdmin">Institutional Administrator</label>
-        <select name="InstAdmin" id="InstAdmin">
-         <option value="0">Assign an Adminstrator</option>
-<?php
-foreach ($users as $u) {
-  print "         <option value=" . $u['user_id'];
-  print " selected" ? ($u['user_id'] == $Inst['admin_userid']) : "";
-  print ">" . $u['first_name'] . ", " . $u['last_name'] . "</option>\n";
-}
-?>
-        </select>
-      </td>
-      <td>&nbsp;</td>
-      <td colspan="3" align="left">
-        <div id="AdminInfo">
-          <strong>
-          <a href="ManageUser.php?User=<?php echo $admin_user['user_id']; ?>">View User Data</a>
-          </strong>
-        </div>
-      </td>
-    </tr>
-<?php
-}
-?>
     <tr><td colspan="7">&nbsp;</td></tr>
     <tr>
       <td colspan="2" align="right"><label for="notes" vertical-align="top">Notes</label>
@@ -172,7 +135,11 @@ foreach ($providers as $p) {
       </td>
       <td colspan="4"><strong>
 <?php
-print "        <a href=\"" . CCPLUSROOTURL . "ManageProvider.php\">Add a Provider</a><br /><br />\n";
+if ( $is_admin ) {
+  print "        <a href=\"" . CCPLUSROOTURL . "ManageProvider.php\">Add a Provider</a><br /><br />\n";
+} else {
+  print "        &nbsp;\n";
+}
 ?>
       </strong></td>
     </tr>
@@ -185,7 +152,11 @@ print "        <a href=\"" . CCPLUSROOTURL . "ManageProvider.php\">Add a Provide
       <td colspan="3" class="section">SUSHI Definitions</td>
       <td colspan="4"><strong>
 <?php
-print "        <a href=\"" . CCPLUSROOTURL . "ImExSettings.php?View=prov\">Import/Export Provider Settings</a>\n";
+if ( $is_admin ) {
+  print "        <a href=\"" . CCPLUSROOTURL . "ImExSettings.php?View=prov\">Import/Export Provider Settings</a>\n";
+} else {
+  print "        &nbsp;\n";
+}
 ?>
       </strong></td>
     </tr>
@@ -208,11 +179,16 @@ print "        <a href=\"" . CCPLUSROOTURL . "ImExSettings.php?View=prov\">Impor
       <td colspan="2" align="left"><input type="text" id="Sushi_CustName" name="Sushi_CustName" /></td>
     </tr>
     <tr><td colspan="7">&nbsp;</td></tr>
+    <tbody id="AliasDefs">
     <tr>
       <td colspan="3" class="section">Alias Name Definitions</td>
       <td colspan="4"><strong>
 <?php
-print "        <a href=\"" . CCPLUSROOTURL . "ImExSettings.php?View=name\">Import/Export Name Definitions</a>\n";
+if ( $is_admin ) {
+  print "        <a href=\"" . CCPLUSROOTURL . "ImExSettings.php?View=name\">Import/Export Name Definitions</a>\n";
+} else {
+  print "        &nbsp;\n";
+}
 ?>
       </strong></td>
     </tr>
@@ -222,6 +198,7 @@ print "        <a href=\"" . CCPLUSROOTURL . "ImExSettings.php?View=name\">Impor
       <td><input type="button" id="AddRow" value="Add an alias" /></td>
       <td colspan="2">&nbsp;</td>
     </tr>
+    </tbody>
     <tbody id="AliasNames">
     </tbody>
     <tr><td colspan="7">&nbsp;</td></tr>

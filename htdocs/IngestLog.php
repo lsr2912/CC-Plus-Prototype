@@ -57,10 +57,21 @@ if ( isset($_SESSION['role']) ) {
   if ( $_SESSION['role'] <= MANAGER_ROLE ) { $Manager = TRUE; }
 }
 
+// Setup page header differently if Admin.vs.Manager
+//
+$_title = "CC-Plus Ingest Log : ";
+if ( $_SESSION['role'] == ADMIN_ROLE) {
+  $_CON = ccp_get_consortia($_SESSION['ccp_con_id']);
+  $_title .= $_CON['name'];
+} else {
+  $_INST = ccp_get_institutions($_SESSION['user_inst']);
+  $_title .= $_INST['name'];
+}
+
 // Setup page and add jQuery/Ajax refresh script
 //
 $crumbs = array();	// no crumbs this page
-print_page_header("CC-Plus Ingest Log",TRUE,$crumbs);
+print_page_header($_title,TRUE,$crumbs);
 print "  <link href=\"" . CCPLUSROOTURL . "include/tablesorter_theme.css\" rel=\"stylesheet\">\n";
 print "  <link href=\"" . CCPLUSROOTURL . "include/jquery.qtip.min.css\" rel=\"stylesheet\">\n";
 print "  <script src=\"" . CCPLUSROOTURL . "include/jquery.tablesorter.js\"></script>\n";
@@ -90,20 +101,29 @@ foreach ( $providers as $_prov ) {
 ?>
         </select>
       </td>
+<?php
+  if ( $_SESSION['role'] == ADMIN_ROLE) {
+?>
       <td width="20%" align="left"><label for="filter_inst"><h4>Filter by Institution</h4></label></td>
       <td width="2%">&nbsp;</td>
       <td width="28%" align="left">
         <select name="filter_inst" id="filter_inst">
           <option value="ALL" selected>ALL</option>
 <?php
-foreach ( $institutions as $_inst ) {
-   print "          <option value=\"" . $_inst['inst_id'] . "\"";
-   print ($_inst['inst_id'] == 0) ? " selected" : "";
-   print ">" . $_inst['name'] . "</option>\n";
-}
+    foreach ( $institutions as $_inst ) {
+      print "          <option value=\"" . $_inst['inst_id'] . "\"";
+      print ($_inst['inst_id'] == 0) ? " selected" : "";
+      print ">" . $_inst['name'] . "</option>\n";
+    }
 ?>
         </select>
       </td>
+<?php
+   } else {
+     print "      <td colspan=\"3\">";
+     print "<input type='hidden' name='filter_inst' value='".$_SESSION['user_inst']."'></td>\n";
+   }
+?>
     </tr>
     <tr>
       <td align="left"><label for="filter_stat"><h4>Completion Status</h4></label></td>
@@ -182,7 +202,11 @@ print "  <table id=\"data_table\" class=\"tablesorter\" cellpadding=\"2\">\n";
 // Display initial data; form inputs will allow user to rebuild and/or sort it 
 //
 if ( count($records) > 0 ) {
-$records = ccp_get_ingest_record( 0, 0, $from, $to, $_STAT);
+
+  $__inst_id = 0;
+  if ( $_SESSION['role'] != ADMIN_ROLE) { $__inst_id = $_INST['inst_id']; }
+  $records = ccp_get_ingest_record( 0, $__inst_id, $from, $to, $_STAT);
+
   foreach ( $records as $_rec ) {
     print "      <tr>\n";
     print "        <td align='left'>" . $_rec['prov_name'] . "</td>\n";

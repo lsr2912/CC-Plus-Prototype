@@ -22,10 +22,6 @@
 include_once 'ccplus/sessions.inc.php';
 include_once 'ccplus/auth.inc.php';
 
-// Setup initial data for display 
-//
-$users = ccp_get_users();
-
 // Build roles into a string for JS functions
 //
 $enum_roles = "0:NoRole,";
@@ -35,16 +31,45 @@ foreach ( $_all_roles as $_r ) {
 }
 $enum_roles = preg_replace("/,$/","",$enum_roles);
 
-// Check rights, set flag if user has management-site access
+// Admins and Editors can use this page
 //
-$Manager = FALSE;
+$ERR = 0;
+$_INST = 0;
+$is_admin = false;
 if ( isset($_SESSION['role']) ) {
-  if ( $_SESSION['role'] <= MANAGER_ROLE ) { $Manager = TRUE; }
+  if ( $_SESSION['role'] == ADMIN_ROLE ) {
+    $is_admin = true;
+  } else if ( $_SESSION['role'] == MANAGER_ROLE ) {
+    $_INST = $_SESSION['user_inst'];
+  } else {
+    $ERR = 1;
+  }
+} else {
+  $ERR = 1;
 }
 
-// Setup page and add view-dependent jQuery/Ajax refresh script
+// Setup page header differently if Admin.vs.Manager, and
+// add view-dependent jQuery/Ajax refresh scripts
 //
-print_page_header("CC-Plus User Accounts",TRUE);
+$_title = "CC-Plus User Accounts : ";
+if ( $_SESSION['role'] == ADMIN_ROLE ) {
+
+  // Pull the consortia info based on session variable
+  //
+  $_CON = ccp_get_consortia($_SESSION['ccp_con_id']);
+  $_title .= $_CON['name'];
+
+} else {
+
+  $_u_inst = ccp_get_institutions($_SESSION['user_inst']);
+  $_title .= $_u_inst['name'];
+}
+print_page_header($_title,TRUE);
+if ( $ERR != 0 ) {
+  print_noaccess_error();
+  include 'ccplus/footer.inc.html.php';
+  exit;
+}
 print "  <link href=\"" . CCPLUSROOTURL . "include/tablesorter_theme.css\" rel=\"stylesheet\">\n";
 print "  <script src=\"" . CCPLUSROOTURL . "include/jquery.tablesorter.js\"></script>\n";
 print "  <script src=\"" . CCPLUSROOTURL . "include/jquery.tablesorter.widgets.js\"></script>\n";
@@ -84,7 +109,11 @@ print "  <table id=\"data_table\" class=\"tablesorter\" cellpadding=\"2\">\n";
       <tr>
         <th id="first"      width='10%' align='left'>First</th>
         <th id="last"       width='10%' align='left'>Last</th>
-        <th id="inst"       width='30%' align='left'>Institution</th>
+<?php
+if ( $_SESSION['role'] == ADMIN_ROLE ) {	// Inst is suppressed for non-admin
+  print "        <th id=\"inst\" width='30%' align='left'>Institution</th>\n";
+}
+?>
         <th id="email"      width='20%' align='left'>Email</th>
         <th id="phone"      width='10%' align='center'>Phone</th>
         <th id="role"       width='10%' align='center'>Role</th>
@@ -93,6 +122,10 @@ print "  <table id=\"data_table\" class=\"tablesorter\" cellpadding=\"2\">\n";
     </thead>
     <tbody id="Summary">
 <?php
+// Get initial data for display 
+//
+$users = ccp_get_users(0,"ALL",$_INST);
+
 // Display initial data; form inputs will allow user to refresh and/or sort it 
 //
 foreach ( $users as $_user ) {
@@ -100,19 +133,19 @@ foreach ( $users as $_user ) {
   print "      <tr>\n";
   print "        <td align='left'>" . $_user['first_name'] . "</td>\n";
   print "        <td align='left'>" . $_user['last_name'] . "</td>\n";
-  print "        <td align='left'>";
-  if ( $_user['inst_id'] == 0 ) {
-    print "Staff</td>\n";
-  } else {
-    if ( $Manager ) {
+          
+  if ( $_SESSION['role'] == ADMIN_ROLE ) {	// Inst is suppressed for non-admin
+    print "        <td align='left'>";
+    if ( $_user['inst_id'] == 0 ) {
+      print "Staff</td>\n";
+    } else {
       print "<a href=\"ManageInst.php?Inst=" . $_user['inst_id'] . "\">";
       print $_user['inst_name'] . "</a></td>\n";
-    } else {
-      print $_user['inst_name'] . "</td>\n";
     }
   }
+
   print "        <td align='left'>";
-  if ( $Manager ) {
+  if ( $_SESSION['role'] <= $_user['role'] ) {
     print "<a href=\"ManageUser.php?User=" . $_user['user_id'] . "\">";
     print $_user['email'] . "</a></td>\n";
   } else {

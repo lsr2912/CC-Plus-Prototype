@@ -24,16 +24,13 @@ include_once 'ccplus/auth.inc.php';
 require_once('ccplus/Encoding.php');
 use \ForceUTF8\Encoding;
 
-$ERR = 0;
-
-// Check rights, set flag if user has management-site access
+// Check rights, set flag if user has admin access
+// (fail with error if not)
 //
-$Manager = FALSE;
+$ERR = 1;
 if ( isset($_SESSION['role']) ) {
-// if ( $_SESSION['role'] != ADMIN_ROLE ) { $ERR = 1; }
-  if ( $_SESSION['role'] <= MANAGER_ROLE ) { $Manager = TRUE; }
+  if ( $_SESSION['role'] == ADMIN_ROLE ) { $ERR = 0; }
 }
-
 
 // Check input POST arguments
 //

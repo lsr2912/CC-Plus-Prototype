@@ -34,11 +34,11 @@ if ( isset($_REQUEST['View'])) {
   }
 }
 
-// Check rights, set flag if user has management-site access
+// Check rights, set flag if user has admin access
 //
-$Manager = FALSE;
+$is_admin = FALSE;
 if ( isset($_SESSION['role']) ) {
-  if ( $_SESSION['role'] <= MANAGER_ROLE ) { $Manager = TRUE; }
+  if ( $_SESSION['role'] == ADMIN_ROLE ) { $is_admin = TRUE; }
 }
 
 // Setup page based on View
@@ -65,6 +65,11 @@ switch ($VIEW) {
 // Build breadcrumbs, pass to page header builder
 //
 print_page_header("CC-Plus " . $_title . " Import-Export",TRUE);
+if ( !$is_admin ) {
+  print_noaccess_error();
+  include 'ccplus/footer.inc.html.php';
+  exit;
+}
 print "<script type=\"text/javascript\" src=\"" . CCPLUSROOTURL . "include/validators.js\"></script>\n";
 
 // Add jQuery/Ajax scripts

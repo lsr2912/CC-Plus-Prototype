@@ -47,9 +47,9 @@ $enum_status = preg_replace("/:$/","",$enum_status);
 
 // Check rights, set flag if user has management-site access
 //
-$Manager = FALSE;
+$is_admin = FALSE;
 if ( isset($_SESSION['role']) ) {
-  if ( $_SESSION['role'] <= MANAGER_ROLE ) { $Manager = TRUE; }
+  if ( $_SESSION['role'] == ADMIN_ROLE ) { $is_admin = TRUE; }
 }
 
 // Setup page and add view-dependent jQuery/Ajax refresh script
@@ -73,7 +73,7 @@ print "  <script src=\"" . CCPLUSROOTURL . "include/Alert_Dash.js\"></script>\n"
 // Setup Form and upper table
 //
 $action = "";
-if ( $Manager ) { $action = CCPLUSROOTURL . "UpdateAlerts.php"; }
+if ( $is_admin ) { $action = CCPLUSROOTURL . "UpdateAlerts.php"; }
 print "<form name='AlertDash' id='AlertDash' method='post' action='$action'>\n";
 print "  <input type=\"hidden\" name=\"enum_stat\" id=\"enum_stat\" value=\"$enum_status\">\n";
 
@@ -96,13 +96,13 @@ foreach ( $filt_stat as $_st ) {
       </td>
       <td width="15%">&nbsp;</td>
 <?php
-if ( $Manager ) {
+if ( $is_admin ) {
   print "      <td width=\"50%\"><input type=\"button\" id=\"SilenceALL\" value=\"Silence ALL Alerts\" /></td>\n";
 } else {
   print "      <td width=\"50%\">&nbsp;</td>\n";
 }
 print "    </tr>\n    <tr>\n";
-if ( $Manager ) {
+if ( $is_admin ) {
   print "      <td colspan=\"3\">&nbsp;</td>\n";
   print "      <td><input type=\"button\" id=\"ActiveALL\" value=\"Activate ALL Alerts\" /></td>\n";
 } else {
@@ -125,7 +125,7 @@ foreach ( $filt_prov as $_prov ) {
       </td>
       <td>&nbsp;</td>
 <?php
-if ( $Manager ) {
+if ( $is_admin ) {
   print "      <td><input type=\"button\" id=\"DeleteALL\" value=\"Mark ALL Alerts For Deletion\" /></td>\n";
 } else {
   print "      <td>&nbsp;</td>\n";
@@ -157,10 +157,10 @@ print "  <table id=\"data_table\" class=\"tablesorter\" cellpadding=\"2\">\n";
 //
 foreach ( $alerts as $_alert ) {
 
-  // Status is a dropdown for managers, text otherwise
+  // Status is a dropdown for admins, text otherwise
   //
   print "      <tr>\n        <td align='left'>";
-  if ( $Manager ) {
+  if ( $is_admin ) {
     print "\n          <select name='stat_" . $_alert['ID'] . "' id='stat_" .  $_alert['ID'] . "'>\n";
     foreach ( $alert_status as $_stat ) {
       print "            <option value=\"" . $_stat . "\"";
@@ -185,13 +185,13 @@ foreach ( $alerts as $_alert ) {
   //
   print "        <td align='center'>" . $_alert['legend'] . "</td>\n";
 
-  // Provider column holds links to management site if $Manager
+  // Provider column holds links to management site if $is_admin
   //
   print "        <td align='center'>";
   if ( $_alert['prov_id'] == 0 ) {
    print "--</td>\n";
   } else {
-   print ( $Manager) ?
+   print ( $is_admin) ?
       "<a href='/ManageProvider.php?Prov=".$_alert['prov_id']."'>".$_alert['prov_name']."</a></td>\n" :
       $_alert['prov_name'] . "</td>\n";
   }
@@ -212,7 +212,7 @@ foreach ( $alerts as $_alert ) {
     </tbody>
   </table>
 <?php
-if ( $Manager ) {
+if ( $is_admin ) {
 ?>
   <p>
     <input type="submit" name="Save" value="Save Changes" /> &nbsp; &nbsp; &nbsp; &nbsp;

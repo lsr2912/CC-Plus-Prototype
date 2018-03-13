@@ -48,6 +48,7 @@ DROP TABLE IF EXISTS `Metrics`;
 CREATE TABLE `Metrics` (
   `ID` int(7) unsigned NOT NULL AUTO_INCREMENT,
   `rept_id` int(7) unsigned NOT NULL DEFAULT 0,
+  `col_xref` varchar(32) DEFAULT NULL,
   `legend` varchar(128) NOT NULL DEFAULT '',
   PRIMARY KEY (`ID`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
@@ -55,7 +56,7 @@ CREATE TABLE `Metrics` (
 --
 -- Data for `Metrics`
 --
-INSERT INTO `Metrics` VALUES (1,1,'Full-Text Article Requests (Total)'),(2,1,'Full-Text Article Requests (PDF)'), (3,1,'Full-Text Article Requests (HTML)'), (4,2,'Full-Text Article Requests');
+INSERT INTO `Metrics` VALUES (1,1,'RP_TTL','Full-Text Article Requests (Total)'),(2,1,'RP_PDF','Full-Text Article Requests (PDF)'), (3,1,'RP_HTML','Full-Text Article Requests (HTML)'), (4,2,NULL,'Total Full-Text Article Requests');
 
 --
 -- Table structure for table packages

@@ -88,10 +88,9 @@ if (!function_exists("process_counter_JR1v4")) {
 
     // Setup insert query template
     // 
-    $metric = 1;	// Links to ccplus_global::Metrics -> JR1,"Full-Text Article Requests"
-    $_qry  = "INSERT into $Table (jrnl_id,prov_id,plat_id,inst_id,metric_xref,yearmon,DOI,";
+    $_qry  = "INSERT into $Table (jrnl_id,prov_id,plat_id,inst_id,yearmon,DOI,";
     $_qry .= "PropID,RP_HTML,RP_PDF,RP_TTL)";
-    $_qry .= " VALUES (?,?,?,?,?,?,?,?,?,?,?)";
+    $_qry .= " VALUES (?,?,?,?,?,?,?,?,?,?)";
 
     // Process report records (once all headers are shifted off)
     //
@@ -127,7 +126,7 @@ if (!function_exists("process_counter_JR1v4")) {
 
         // Setup variables for the insert 
         //
-        $_args = array($journal['ID'],$prov_id,$platform['ID'],$inst_id,$metric,$yearmon,$_DOI,$_PID,$_HTM,$_PDF,$_TTL);
+        $_args = array($journal['ID'],$prov_id,$platform['ID'],$inst_id,$yearmon,$_DOI,$_PID,$_HTM,$_PDF,$_TTL);
 
         // execute the contract table insert
         //
@@ -222,9 +221,8 @@ if (!function_exists("process_counter_JR5v4")) {
 
     // Setup insert query template
     // 
-    $metric = 2;	// Links to ccplus_global::Metrics -> JR5,"Full-Text Article Requests"
-    $_qvar = "INSERT into $Table (jrnl_id,prov_id,plat_id,inst_id,metric_xref,yearmon,DOI,PropID";
-    $_qval = " VALUES (?,?,?,?,?,?,?,?";
+    $_qvar = "INSERT into $Table (jrnl_id,prov_id,plat_id,inst_id,yearmon,DOI,PropID";
+    $_qval = " VALUES (?,?,?,?,?,?,?";
     foreach ( $YOPS as $yop ) {
       $_qvar .= ",`" . $yop . "`";
       $_qval .= ",?";
@@ -258,7 +256,7 @@ if (!function_exists("process_counter_JR5v4")) {
 
         // Setup insert arguments
         //
-        $_args = array($journal['ID'],$prov_id,$platform['ID'],$inst_id,$metric,$yearmon,$_DOI,$_PID);
+        $_args = array($journal['ID'],$prov_id,$platform['ID'],$inst_id,$yearmon,$_DOI,$_PID);
         foreach ( $YOPS as $idx=>$yop ) { $_args[] = $_cells[$idx]; }
 
         // execute the contract table insert

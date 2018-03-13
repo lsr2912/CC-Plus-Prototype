@@ -62,6 +62,21 @@ if (!function_exists("createYMarray")) {
   }
 } 
 
+if (!function_exists("MonthCount")) {
+  function MonthCount($from, $to) {
+
+    $from_ts = strtotime($from);
+    $to_ts = strtotime($to);
+
+    $from_yr = date('Y', $from_ts);
+    $to_yr = date('Y', $to_ts);
+    $from_mo = date('m', $from_ts);
+    $to_mo = date('m', $to_ts);
+
+    return (($to_yr-$from_yr)*12) + ($to_mo-$from_mo);
+  }
+} 
+
 if (!function_exists("html")) {
   function html($text) {
     return htmlspecialchars($text, ENT_QUOTES, 'UTF-8');
@@ -155,7 +170,7 @@ JQ1;
     print "      <p style=\"float:left;\">\n";
     $__role = 0;
     if ( isset($_SESSION['role']) ) { $__role = $_SESSION['role']; }
-    if ( $__role==ADMIN_ROLE && !$_on_adminhome ) {
+    if ( $__role<=MANAGER_ROLE && !$_on_adminhome ) {
       print "        <a href=\"" . CCPLUSROOTURL . "AdminHome.php\">Administration Home</a><br /><br />\n";
     }
     if ( !$_on_reports ) {
@@ -203,8 +218,8 @@ if (!function_exists("print_noaccess_error")) {
 print <<< ERR1
   <Blockquote>
   Your account does not have sufficient access to use the requested resource or page.<br />
-  Contact the CC-Plus site administrator to gain greater access, or connect to either <br />
-  the <a href="/index.php">Reporting Homepage</a>.
+  Contact your CC-Plus Consortium administrator or the CC-Plus site administrator to<br />
+  gain greater access.
 </Blockquote>
 ERR1;
   }

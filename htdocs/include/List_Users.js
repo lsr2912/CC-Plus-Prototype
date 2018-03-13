@@ -37,61 +37,57 @@ $(document).ready(function() {
       data: form_data,
       dataType: 'json',
       success: function(return_data) {
-        var mgr = return_data.manager;
+        var adm = return_data.admin;
         $.each(return_data.records, function(key,value){
+          if (typeof value.error === 'undefined' || !value.error) {
 
-          //
-          // Build new table rows from function output
-          //
-          var row="<tr>";
-          //
-          // First/Last name
-          //
-          row += "<td align='left'>" + value.first_name + "</td>";
-          row += "<td align='left'>" + value.last_name + "</td>";
-          //
-          // Managers see a link for Inst
-          //
-          row += "<td align='left'>";
-          if ( value.inst_id == 0 ) {
-              row += "Staff</td>";
-          } else {
-            if (mgr) {
-              row += "<a href='ManageInst.php?Inst=" +  value.inst_id + "'>";
-              row += value.inst_name + "</a></td>";
-            } else {
-              row += value.inst_name + "</td>";
+            //
+            // Build new table rows from function output
+            //
+            var row="<tr>";
+            //
+            // First/Last name
+            //
+            row += "<td align='left'>" + value.first_name + "</td>";
+            row += "<td align='left'>" + value.last_name + "</td>";
+            //
+            // Add the institution column for admins
+            //
+            if (adm) {
+              row += "<td align='left'>";
+              if ( value.inst_id == 0 ) {
+                row += "Staff</td>";
+              } else {
+                row += "<a href='ManageInst.php?Inst=" +  value.inst_id + "'>";
+                row += value.inst_name + "</a></td>";
+              }
             }
-          }
-          //
-          // Managers see a link for Email
-          //
-          row += "<td align='left'>";
-          if (mgr) {
+            row += "<td align='left'>";
             row += "<a href='ManageUser.php?User=" +  value.user_id + "'>";
             row += value.email + "</a></td>";
+            //
+            // Phone, role, and last_login
+            //
+            var _login = value.last_login.substring(0,10);
+            row += "<td align='center'>" + value.phone + "</td>";
+            row += "<td align='center'>";
+            for (var i=0, sm=role_vals.length; sm>i; i++) {
+               var _role = role_vals[i].split(":");
+               if ( _role[0] == value.role ) {
+                 row += _role[1];
+               }
+            }
+            row += "</td>";
+            var _ts = value.last_login.substring(0,10);
+            row += "<td align='center'>" + _ts + "</td>";
+            //
+            // complete and add the row
+            //
+            row += "</tr>";
           } else {
-            row += value.email + "</td>";
+            var row="<tr><td colspan=5 align='center'><p><strong>";
+            row += value.message +"</strong></p></td></tr>";
           }
-          //
-          // Phone, role, and last_login
-          //
-          var _login = value.last_login.substring(0,10);
-          row += "<td align='center'>" + value.phone + "</td>";
-          row += "<td align='center'>";
-          for (var i=0, sm=role_vals.length; sm>i; i++) {
-             var _role = role_vals[i].split(":");
-             if ( _role[0] == value.role ) {
-               row += _role[1];
-             }
-          }
-          row += "</td>";
-          var _ts = value.last_login.substring(0,10);
-          row += "<td align='center'>" + _ts + "</td>";
-          //
-          // complete and add the row
-          //
-          row += "</tr>";
           $table.append(row);
           $table.trigger('update');
         })

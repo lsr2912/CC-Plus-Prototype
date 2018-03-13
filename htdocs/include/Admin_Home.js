@@ -45,22 +45,36 @@ $(document).ready(function() {
   });
 
   // ---------------------------------------------------------------////////
-  //////// Details: Provider onchange action regens inst-names      ////////
+  //////// Details: Provider onchange action regens inst-names if   ////////
+  ////////          run as admin, or timestamps if run as manager   ////////
   //
   $("#R_Prov").change(function(){ // change function of listbox
-    $("#R_Inst").empty(); // Clear the institution options
     $("#R_yearmon").empty(); // Clear the timestamp options
     $("#R_report").empty(); // Clear the report options
     $.post("reptprov_js.php", {"prov_id":$('#R_Prov').val()}, function(return_data,status){
-      var content = "<option value=''>Choose an institution</option>\n";
-      $.each(return_data.insts, function(key,value){
-        if (value.error === 'undefined' || !value.error) {
-          content += "<option value=" + value.inst_id +">"+value.name+"</option>\n";
-        } else {
-          content = "<option value=''>"+value.message+"</option>\n";
-        }
-      });
-      $("#R_Inst").append(content);
+      var adm = return_data.admin;
+      if ( adm ) {	// Admin gets to choose inst, rebuild the options
+        $("#R_Inst").empty();
+        var content = "<option value=''>Choose an institution</option>\n";
+        $.each(return_data.records, function(key,value){
+          if (value.error === 'undefined' || !value.error) {
+            content += "<option value=" + value.inst_id +">"+value.name+"</option>\n";
+          } else {
+            content = "<option value=''>"+value.message+"</option>\n";
+          }
+        });
+        $("#R_Inst").append(content);
+      } else {		// for manager, rebuild timestamps instead of insts
+        var content = "<option value=''>Choose a Month-Year</option>\n";
+        $.each(return_data.records, function(key,value){
+          if (value.error === 'undefined' || !value.error) {
+            content += "<option value=" + value.yearmon +">"+value.yearmon+"</option>\n";
+          } else {
+            content = "<option value=''>"+value.message+"</option>\n";
+          }
+        });
+        $("#R_yearmon").append(content);
+      }
     },"json");
   });
 

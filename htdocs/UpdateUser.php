@@ -27,11 +27,17 @@ include_once 'ccplus/auth.inc.php';
 $_UID = 0;
 if ( isset($_POST['UID']) ) { $_UID = $_POST['UID']; }
 
-// Check rights; proceed if Admin or UID matches current user 
+// Check rights; proceed if Admin/Manager or if UID matches current user 
 // Check for errors in arguments or access
 // 
 $ERR = 0;
-if ( ($_SESSION['role'] != ADMIN_ROLE) && ($_UID != $_SESSION['ccp_uid']) ) { $ERR = 1; }
+if ( $_UID != $_SESSION['ccp_uid'] ) {	// account to update not my own?
+  if ( $_SESSION['role'] > MANAGER_ROLE ) {	// if not admin/manager, then error
+    $ERR = 1;
+  } else if ( $_SESSION['role'] == MANAGER_ROLE ) {	// manager only updates their inst
+    if ( $_SESSION['user_inst'] != $_POST['Inst'] ) { $ERR = 1; }
+  }
+}
 if ( !isset($_POST['Create'] ) && ($_UID == 0) ) { $ERR = 2; }
 
 // Check for duplicate email address, disallow creating a duplicate,
@@ -45,6 +51,18 @@ if ( isset($_POST['Create']) ) {	// On Create, ensure no duplicate email address
 if ( isset($_POST['Update']) ) {
   $_user = ccp_get_users($_UID);
   if ( ($_POST['email'] != $_user['email']) && $existing_count > 0 ) { $ERR = 3; }
+
+  // Managers cannot set role w/ more priv than they have
+  // (not a show-stopper, just an enforced reset)
+  //
+  if ( isset($_POST['CCPRole']) ) {
+    $_ROLE = $_POST['CCPRole'];
+    if ( ($_SESSION['role'] == MANAGER_ROLE) && ($_ROLE < $_SESSION['role']) ) {
+      $_ROLE = $_SESSION['role'];
+    }
+  } else {
+    $ERR = 2;
+  }
 }
 
 // If access and UID good, proceed
@@ -127,7 +145,7 @@ if ($ERR == 0) {
     //
     if ( isset($_POST['Create'] ) ) {
       $__Args = array($_POST['Inst'], $_POST['email'], md5($_POST['userpass']), $_POST['first'], $_POST['last'],
-                      $_POST['phone'],  $_POST['CCPRole'], $optin_alerts, $is_active, $new_pass);
+                      $_POST['phone'],  $_ROLE, $optin_alerts, $is_active, $new_pass);
 
       $_qry  = "INSERT INTO users";
       $_qry .= " (inst_id,email,password,first_name,last_name,phone,role,optin_alerts,active,password_change_required)";
@@ -161,11 +179,8 @@ if ($ERR == 0) {
     //
     } else {
 
-      $_Role = $_SESSION['role'];
-      if ( isset($_POST['CCPRole']) ) { $_Role = $_POST['CCPRole']; }
-
       $__Args = array($_POST['Inst'], $_POST['email'], $_POST['first'], $_POST['last'], $_POST['phone'],
-            $_Role, $optin_alerts, $is_active, $new_pass, $_UID);
+            $_ROLE, $optin_alerts, $is_active, $new_pass, $_UID);
 
       $_qry1  = "UPDATE users SET inst_id=?, email=? , first_name=? , last_name=? , phone=? , role=? , ";
       $_qry1 .= "optin_alerts=?, active=? , password_change_required=? ";

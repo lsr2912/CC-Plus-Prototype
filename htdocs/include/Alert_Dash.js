@@ -48,17 +48,17 @@ $(document).ready(function() {
          data: form_data,
          dataType: 'json',
          success: function(return_data) {
-           var mgr = return_data.manager;
+           var adm = return_data.admin;
            $.each(return_data.records, function(key,value){
            //
            // Build new table rows from function output 
            //
              var row="<tr>";
              //
-             // Manager gets a dropdown, otherwise just print the text
+             // Admins get a dropdown, otherwise just print the text
              //
              row += "<td align='left'>";
-             if ( mgr ) {
+             if ( adm ) {
                row += "<select name='stat_" + value.ID + "' id='stat_" + value.ID + "'>";
                for (var i=0, sm=status_vals.length; sm>i; i++) {
                  row += "<option value='" + status_vals[i] + "'";
@@ -86,13 +86,13 @@ $(document).ready(function() {
                row += " -- </td>";
              }
              //
-             // Provider as link for manager, otherwise just the name
+             // Provider as link for admins, otherwise just the name
              //
              row += "<td align='left'>";
              if ( value.prov_id == 0 ) {
                row += "--</td>";
              } else {
-               if ( mgr ) {
+               if ( adm ) {
                  row += "<a href='ManageProvider.php?Prov=" + value.prov_id + "'>";
                  row += value.prov_name + "</a></td>";
                } else {
@@ -108,7 +108,7 @@ $(document).ready(function() {
                row += "--</td>";
              } else {
                if ( value.modified_by == 0 ) {
-                 row += "ERM System";
+                 row += "CC-Plus System";
                } else {
                  row += value.user_name + "</td>";
                }

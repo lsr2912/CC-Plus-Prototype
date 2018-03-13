@@ -499,6 +499,90 @@ if (!function_exists("ccp_count_report_records")) {
   }
 }
 
+// Return cumulative counts for a given provider over a given timeframe
+// A Provider ID is required. If start-month = end-month = zero, the where
+// clause has no date filter.
+//
+// JR1 looks for a single column, and defaults to "RP_TTL"
+// JR5 sums up all YOP_*** columns into a single value
+//
+// Arguments: $_prov : The provider ID to collect data for
+//            $_rept : Report name to be queried
+//            $_colx : Column in the report to process 
+//            $_inst : Limit by-institution (0 = all)
+//            $_smo  : month (0 or YYYY-MM)
+//            $_emo  : month (0 or YYYY-MM)
+//            $_DB   : Database being queried
+//
+//  Returns : $retval : the answer for the requested function
+//
+if (!function_exists("ccp_total_usage")) {
+  function ccp_total_usage( $_prov, $_rept, $_colx="", $_inst=0, $_smo=0, $_emo=0, $_DB ) {
+
+    // Setup database connection
+    //
+    global $ccp_usr_cnx;
+    if ( !$ccp_usr_cnx ) { $ccp_usr_cnx = ccp_open_db(); }
+
+    $retval = 0;
+    if ( $_prov==0 ) { return $retval; }
+
+    // Split start and end dates
+    //
+    if ( $_smo != 0 && $_emo != 0 ) {
+      if ( $_emo < $_smo ) { return $retval; }
+    }
+
+    // Setup an array of column-names and the table to be queried
+    //
+    $_table = $_rept . "_Report_Data";
+    if ( $_rept == "JR1" ) {
+      if ( $_colx == "" ) { $_colx = "RP_TTL"; }
+      $cols = array($_colx);
+    } else if ( $_rept == "JR5" ) {
+      if ( $_colx == "" ) {
+        $cols = ccp_get_yop_columns($_DB);
+      } else {
+        $cols = array($_colx);
+      }
+    }
+
+    // Setup the query
+    //
+    $_qry  = "SELECT ";
+    foreach ($cols as $_c) {
+       $_qry .= "SUM(`" . $_c . "`)+";
+    }
+    $_qry = preg_replace("/\+$/","",$_qry);
+    $_qry .= " AS RETVAL FROM " . $_table;
+
+    // Build the where clause
+    //
+    $_where = " WHERE prov_id=$_prov";
+    if ($_inst>0) { $_where .= " AND inst_id=$_inst"; }
+    if ( $_smo != 0 && $_emo != 0 ) {
+      $_where .= " AND STR_TO_DATE(yearmon,'%Y-%m') BETWEEN ";
+      $_where .= "STR_TO_DATE('" . $_smo . "','%Y-%m') AND ";
+      $_where .= "STR_TO_DATE('" . $_emo . "','%Y-%m')";
+    }
+    $_qry .= $_where;
+
+    // Run the query
+    //
+    try {
+      $_result = $ccp_usr_cnx->query($_qry);
+      while ( $row = $_result->fetch(PDO::FETCH_ASSOC) ) {
+        $retval = $row['RETVAL'];
+      }
+    } catch (PDOException $e) {
+      echo $e->getMessage();
+      exit();
+    }
+
+    return $retval;
+  }
+}
+
 // Return stats counts from the JR1_Report_Data table over a given
 // timeframe. A non-zero value for provider/platform/inst will limit
 // the results based on the values given.
@@ -1129,7 +1213,6 @@ if (!function_exists("ccp_get_yop_columns")) {
 
     // Return the rows
     return $columns;
-
   }
 }
 ?>

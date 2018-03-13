@@ -23,17 +23,32 @@ include_once 'ccplus/sessions.inc.php';
 include_once 'ccplus/auth.inc.php';
 include_once 'ccplus/statsutils.inc.php';
 
+// Check rights, set flag if user has management-site access
+//
+$is_mgr = FALSE;
+$is_admin = FALSE;
+if ( isset($_SESSION['role']) ) {
+  if ( $_SESSION['role'] == ADMIN_ROLE ) { $is_admin = TRUE; }
+  if ( $_SESSION['role'] == MANAGER_ROLE ) { $is_mgr = TRUE; }
+}
+
 // Handle input arguments
 //
 $_ERR = 0;
 $_PROV=0;
 if ( isset($_REQUEST['R_Prov']) ) { $_PROV = $_REQUEST['R_Prov']; }
-$_INST=0;
-if ( isset($_REQUEST['R_Inst']) ) { $_INST = $_REQUEST['R_Inst']; }
 $_DATE=0;
 if ( isset($_REQUEST['R_yearmon']) ) { $_DATE = trim($_REQUEST['R_yearmon']); }
 $_REPT=0;
 if ( isset($_REQUEST['R_report']) ) { $_REPT = trim($_REQUEST['R_report']); }
+
+// Set inst based on SESSION if user is manager
+//
+$_INST=0;
+if ( isset($_REQUEST['R_Inst']) ) { $_INST = $_REQUEST['R_Inst']; }
+if ( isset($_SESSION['user_inst']) ) {
+  if ( $is_mgr ) { $_INST = $_SESSION['user_inst']; }
+}
 if ( $_PROV==0 || $_INST==0 || $_DATE==0 || $_REPT==0 ) { $_ERR = 1; }
 
 // If there are missing argument(s), put out error page
@@ -53,7 +68,12 @@ if ( $_ERR != 0 ) {
 // Setup arrays for filter dropdowns
 //
 $providers = ccp_get_providers_ui();
-$institutions = ccp_report_insts_ui('Saved',$_PROV);
+if ( $is_admin ) {
+  $institutions = ccp_report_insts_ui('Saved',$_PROV);
+} else {
+  $__inst = ccp_get_institutions($_SESSION['user_inst']);
+  $_INST_NAME = $__inst['name'];
+}
 $stamps = ccp_report_timestamps_ui($_PROV,$_INST);
 $reports = ccp_get_reports_ui($_PROV, $_INST, $_DATE);
 
@@ -69,13 +89,6 @@ $_rept_name = preg_replace('/ \(|\)/', '', $_rept['report_name']);
 $base_path = CCPLUSROOTURL."raw_reports/".$_cons['ccp_key']."/".$_rept['inst_name']."/".$_rept['prov_name'];
 $_raw_xml = $base_path."/XML/".$_rept_name."_".$from."_".$to.".xml";
 $_raw_csv = $base_path."/COUNTER/".$_rept_name."_".$from."_".$to.".csv";
-
-// Check rights, set flag if user has management-site access
-//
-$Manager = FALSE;
-if ( isset($_SESSION['role']) ) {
-  if ( $_SESSION['role'] <= MANAGER_ROLE ) { $Manager = TRUE; }
-}
 
 // Setup page and add jQuery/Ajax refresh script
 //
@@ -123,19 +136,29 @@ foreach ( $providers as $_prov ) {
             </td>
           </tr>
           <tr>
+<?php
+if ( $is_admin ) {
+?>
             <td align="left"><label for="R_Inst"><h4>Choose an Institution</h4></label></td>
             <td>&nbsp;</td>
             <td align="left">
               <select name="R_Inst" id="R_Inst">
 <?php
-foreach ( $institutions as $_inst ) {
-   print "                <option value=\"" . $_inst['inst_id'] . "\"";
-   print ($_inst['inst_id'] == $_INST) ? " selected" : "";
-   print ">" . $_inst['name'] . "</option>\n";
-}
+  foreach ( $institutions as $_inst ) {
+    print "                <option value=\"" . $_inst['inst_id'] . "\"";
+    print ($_inst['inst_id'] == $_INST) ? " selected" : "";
+    print ">" . $_inst['name'] . "</option>\n";
+  }
 ?>
               </select>
             </td>
+<?php
+} else {
+  print "            <td align=\"left\"><h4>Institution</h4></td>\n";
+  print "            <td><input type='hidden' name='R_Inst' value='".$_SESSION['user_inst']."'></td>\n";
+  print "            <td align=\"left\">" . $_INST_NAME . "</td>\n";
+}
+?>
           </tr>
           <tr>
             <td align="left"><label for="R_yearmon"><h4>Choose a Date</h4></label></td>

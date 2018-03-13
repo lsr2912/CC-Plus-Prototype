@@ -34,24 +34,29 @@ print_page_header("CC-Plus Administration Home: " . $_CON['name'], TRUE);
   <table width="80%" class="centered">
 <?php
 // -----------------------------------------------------------------
-// If not Admin, display an error screen with instructions and links
+// If not manager or admin, display an error screen with instructions and links
 //
-if ( $_SESSION['role'] != ADMIN_ROLE) {
+if ( $_SESSION['role'] > MANAGER_ROLE) {
 
-   print_noaccess_error();
+  print_noaccess_error();
 
 } else {
 
-   // Get name/ID/email for all users in an array
-   //
-   $users = ccp_get_users_ui();
+  // Get name/ID/email for all users in an array. Limit by inst
+  // if user is a manager; Admin gets everything.
+  //
+  if ( $_SESSION['role'] > ADMIN_ROLE) {	// limit users to manager's inst
+    $users = ccp_get_users_ui($_SESSION['user_inst']);
+  } else {
+    $users = ccp_get_users_ui();
+  }
 ?>
     <tr>
       <td width="25%" class="section">Manage Users</td>
       <td width="50%">
 <?php
-print "        <form name=\"UserFrm\" id=\"U_form\" method=\"post\" action=\"" . CCPLUSROOTURL . "ManageUser.php\">\n";
-print "        <script src=\"" . CCPLUSROOTURL . "include/Admin_Home.js\"></script>\n";
+  print "        <form name=\"UserFrm\" id=\"U_form\" method=\"post\" action=\"" . CCPLUSROOTURL . "ManageUser.php\">\n";
+  print "        <script src=\"" . CCPLUSROOTURL . "include/Admin_Home.js\"></script>\n";
 ?>
         <table width="100%" class="centered">
           <tr>
@@ -60,10 +65,10 @@ print "        <script src=\"" . CCPLUSROOTURL . "include/Admin_Home.js\"></scri
               <select name="User" id="User" onchange="this.form.submit()">
                 <option value="">Choose a User</option>
 <?php
-foreach ($users as $u) {
-  print "                <option value=" . $u['user_id'] . ">";
-  print $u['last_name'] . ", " . $u['first_name'] . " (" . $u['email'] . ")</option>\n";
-}
+  foreach ($users as $u) {
+    print "                <option value=" . $u['user_id'] . ">";
+    print $u['last_name'] . ", " . $u['first_name'] . " (" . $u['email'] . ")</option>\n";
+  }
 ?>
               </select>
             </td>
@@ -73,26 +78,39 @@ foreach ($users as $u) {
       </td>
       <td width="25%" class="data"><strong>
 <?php
-print "        <a href=\"" . CCPLUSROOTURL . "ManageUser.php\">Add a User</a><br /><br />\n";
-print "        <a href=\"" . CCPLUSROOTURL . "ListUsers.php\">Display all Users</a><br /><br />\n";
-print "        <a href=\"" . CCPLUSROOTURL . "ImExSettings.php?View=user\">Import/Export User Settings</a>\n";
+  print "        <a href=\"" . CCPLUSROOTURL . "ManageUser.php\">Add a User</a><br /><br />\n";
+  print "        <a href=\"" . CCPLUSROOTURL . "ListUsers.php\">Display all Users</a><br /><br />\n";
+  if ( $_SESSION['role'] == ADMIN_ROLE) {
+    print "        <a href=\"" . CCPLUSROOTURL . "ImExSettings.php?View=user\">Import/Export User Settings</a>\n";
+  }
 ?>
       </strong></td>
     </tr>
     <tr><td colspan="3" align="center"><br /><hr><br /></td></tr>
 <?php
-   // Build HTML for "Institutions" section
-   // --------------------------------------
+  // Build HTML for "Institutions" section
+  // --------------------------------------
 
-   // Get all institution names to fill-out default view
-   //
-   $institution = ccp_get_institutions_ui();
+  if ( $_SESSION['role'] > ADMIN_ROLE) { // manager gets single link to their inst
+?>
+    <tr>
+      <td width="25%">&nbsp;</td>
+      <td align="left">
+<?php
+    $_insturl = CCPLUSROOTURL . "ManageInst.php";
+    print "        <a href=\"$_insturl\">Manage Institutional Settings</a><br /><br />\n";
+
+  } else {
+
+    // Admin gets select list of all institution names; setup default view
+    //
+    $institution = ccp_get_institutions_ui();
 ?>
     <tr>
       <td width="25%" class="section">Member Institutions</td>
       <td align="center">
 <?php
-print "        <form name=\"InstFrm\" id=\"I_form\" method=\"get\" action=\"" . CCPLUSROOTURL . "ManageInst.php\">\n";
+    print "        <form name=\"InstFrm\" id=\"I_form\" method=\"get\" action=\"" . CCPLUSROOTURL . "ManageInst.php\">\n";
 ?>
         <table width="100%" cellspacing="0" cellpadding="2" border="0" align="center">
           <tr>
@@ -111,11 +129,11 @@ print "        <form name=\"InstFrm\" id=\"I_form\" method=\"get\" action=\"" . 
               <select name="Inst" id="Inst" onchange="this.form.submit()">
                 <option value="">Choose an Institution</option>
 <?php
-// Populate the initial institution list
-//
-foreach ($institution as $inst) {
-  print "                <option value=\"" . $inst['inst_id'] . "\">" . $inst['name'] . "</option>\n";
-}
+    // Populate the initial institution list
+    //
+    foreach ($institution as $inst) {
+      print "                <option value=\"" . $inst['inst_id'] . "\">" . $inst['name'] . "</option>\n";
+    }
 ?>
               </select>
             </td>
@@ -125,25 +143,27 @@ foreach ($institution as $inst) {
       </td>
       <td width="25%" class="data"><strong>
 <?php
-print "        <a href=\"" . CCPLUSROOTURL . "ManageInst.php\">Add an Institution</a><br /><br />\n";
-print "        <a href=\"" . CCPLUSROOTURL . "ImExSettings.php?View=inst\">Import/Export Institution Settings</a>\n";
+    print "        <a href=\"" . CCPLUSROOTURL . "ManageInst.php\">Add an Institution</a><br /><br />\n";
+    print "        <a href=\"" . CCPLUSROOTURL . "ImExSettings.php?View=inst\">Import/Export Institution Settings</a>\n";
+    print "      </strong></td>\n    </tr>\n";
+  }
 ?>
-      </strong></td>
-    </tr>
     <tr><td colspan="3" align="center"><br /><hr><br /></td></tr>
 <?php
-   // Get all provider names to fill-out default view
-   //
-   $providers = ccp_get_providers_ui();
+  // Get all provider names - used for "providers" and "report details" sections
+  //
+  $providers = ccp_get_providers_ui();
+  if ( $_SESSION['role'] == ADMIN_ROLE) { // if not-admin, limit options
 
-   // Build HTML for "Providers" section
-   // ----------------------------------
+
+    // Build HTML for "Providers" section
+    // ----------------------------------
 ?>
     <tr>
       <td width="25%" class="section">Report Providers</td>
       <td align="center">
 <?php
-print "        <form name=\"ProvFrm\" id=\"P_form\" method=\"get\" action=\"" . CCPLUSROOTURL . "ManageProvider.php\">\n";
+    print "        <form name=\"ProvFrm\" id=\"P_form\" method=\"get\" action=\"" . CCPLUSROOTURL . "ManageProvider.php\">\n";
 ?>
         <table width="100%" class="centered">
           <tr>
@@ -162,11 +182,11 @@ print "        <form name=\"ProvFrm\" id=\"P_form\" method=\"get\" action=\"" . 
               <select name="Prov" id="Prov" onchange="this.form.submit()">
                 <option value="">Choose a Provider</option>
 <?php
-// Populate the initial Provider list 
-//
-foreach ($providers as $p) {
-  print "                <option value=" . $p['prov_id'] . ">" . $p['name'] . "</option>\n";
-}
+    // Populate the initial Provider list 
+    //
+    foreach ($providers as $p) {
+      print "                <option value=" . $p['prov_id'] . ">" . $p['name'] . "</option>\n";
+    }
 ?>
               </select>
             </td>
@@ -176,21 +196,22 @@ foreach ($providers as $p) {
       </td>
       <td width="25%" class="data"><strong>
 <?php
-print "        <a href=\"" . CCPLUSROOTURL . "ManageProvider.php\">Add a Provider</a><br /><br />\n";
-print "        <a href=\"" . CCPLUSROOTURL . "ImExSettings.php?View=prov\">Import/Export Provider Settings</a>\n";
+    print "        <a href=\"" . CCPLUSROOTURL . "ManageProvider.php\">Add a Provider</a><br /><br />\n";
+    print "        <a href=\"" . CCPLUSROOTURL . "ImExSettings.php?View=prov\">Import/Export Provider Settings</a>\n";
 ?>
       </strong></td>
     </tr>
     <tr><td colspan="3" align="center"><br /><hr><br /></td></tr>
 <?php
-   // Build HTML for "Report Details" section
-   // ---------------------------------------
+  }
+  // Build HTML for "Report Details" section
+  // ---------------------------------------
 ?>
     <tr>
       <td width="25%" class="section">Report Details</td>
       <td align="center">
 <?php
-print "        <form name=\"ReptFrm\" id=\"R_form\" method=\"get\" action=\"" . CCPLUSROOTURL . "ReportDetail.php\">\n";
+  print "        <form name=\"ReptFrm\" id=\"R_form\" method=\"get\" action=\"" . CCPLUSROOTURL . "ReportDetail.php\">\n";
 ?>
         <table width="100%" class="centered">
           <tr>
@@ -199,17 +220,28 @@ print "        <form name=\"ReptFrm\" id=\"R_form\" method=\"get\" action=\"" . 
               <select name="R_Prov" id="R_Prov">
                 <option value="">Choose a Provider</option>
 <?php
-// Populate the initial Provider list 
-//
-foreach ($providers as $p) {
-  print "                <option value=" . $p['prov_id'] . ">" . $p['name'] . "</option>\n";
-}
+  // Populate the initial Provider list 
+  //
+  foreach ($providers as $p) {
+    print "                <option value=" . $p['prov_id'] . ">" . $p['name'] . "</option>\n";
+  }
 ?>
               </select>
+<?php
+  // If Manager, we'll skip over the provider dropdown (just below),
+  // So stuff a hidden variable in this cell now.
+  //
+  if ( $_SESSION['role'] == MANAGER_ROLE) {
+    print "              <input type='hidden' name='R_Inst' value='".$_SESSION['user_inst']."'>\n";
+  }
+?>
             </td>
           </tr>
 <?php
-// Institutions are populated after provider is chosen
+  // Institutions are populated after provider is chosen;
+  // only display insts for admin (managers limited to their inst)
+  //
+  if ( $_SESSION['role'] == ADMIN_ROLE) {
 ?>
           <tr>
             <td align="left"><label for="R_Inst">Institution</label></td>
@@ -220,7 +252,8 @@ foreach ($providers as $p) {
             </td>
           </tr>
 <?php
-// Timestamps are populated after institution is chosen
+  }
+  // Timestamps are populated after institution is chosen
 ?>
           <tr>
             <td align="left"><label for="R_yearmon">Timestamp</label></td>
@@ -231,7 +264,7 @@ foreach ($providers as $p) {
             </td>
           </tr>
 <?php
-// Report names are populated after timestamp is chosen
+  // Report names are populated after timestamp is chosen
 ?>
           <tr>
             <td align="left"><label for="R_report">Report</label></td>
@@ -246,20 +279,20 @@ foreach ($providers as $p) {
       </td>
       <td width="25%" class="data"><strong>
 <?php
-print "        <a href=\"" . CCPLUSROOTURL . "ManualIngest.php\">Manual Report Ingest</a>\n";
+  print "        <a href=\"" . CCPLUSROOTURL . "ManualIngest.php\">Manual Report Ingest</a>\n";
 ?>
       </strong></td>
     </tr>
     <tr><td colspan="3" align="center"><br /><hr><br /></td></tr>
 <?php
-   // Build HTML for "Error Handling" section
-   // ----------------------------------------
+  // Build HTML for "Error Handling" section
+  // ----------------------------------------
 ?>
     <tr>
       <td width="25%" class="section">Error Handling</td>
       <td align="center">
 <?php
-print "        <form name=\"AlrtFrm\" id=\"A_form\" method=\"get\" action=\"" . CCPLUSROOTURL . "AlertsDash.php\">\n";
+  print "        <form name=\"AlrtFrm\" id=\"A_form\" method=\"get\" action=\"" . CCPLUSROOTURL . "AlertsDash.php\">\n";
 ?>
           <table width="100%" class="centered">
             <tr>
@@ -281,7 +314,9 @@ print "        <form name=\"AlrtFrm\" id=\"A_form\" method=\"get\" action=\"" . 
       </td>
       <td width="25%" class="data"><strong>
 <?php
-print "        <a href=\"" . CCPLUSROOTURL . "AlertSettings.php\">Alert Definitions</a>\n";
+  if ( $_SESSION['role'] == ADMIN_ROLE) { // admin-only link
+    print "        <a href=\"" . CCPLUSROOTURL . "AlertSettings.php\">Alert Definitions</a>\n";
+  }
 ?>
       </strong></td>
     </tr>
@@ -289,7 +324,7 @@ print "        <a href=\"" . CCPLUSROOTURL . "AlertSettings.php\">Alert Definiti
       <td align="left">&nbsp;</td>
       <td align="center">
 <?php
-print "        <form name=\"LogFrm\" id=\"Logform\" method=\"get\" action=\"" . CCPLUSROOTURL . "IngestLog.php\">\n";
+  print "        <form name=\"LogFrm\" id=\"Logform\" method=\"get\" action=\"" . CCPLUSROOTURL . "IngestLog.php\">\n";
 ?>
           <table width="100%" class="centered">
             <tr>
@@ -314,8 +349,8 @@ print "        <form name=\"LogFrm\" id=\"Logform\" method=\"get\" action=\"" . 
   </table>
 <?php
 
-}	// end-if ADMIN role
-//
+}	// end-if ADMIN or MANAGER
+
 // All done, footer time
 //
 include 'ccplus/footer.inc.html.php';

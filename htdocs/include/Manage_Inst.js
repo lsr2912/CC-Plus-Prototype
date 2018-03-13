@@ -18,30 +18,20 @@
 //
 $(document).ready(function() {
 
-  $('#AdminInfo').hide();	// hide div when admin not set
-
-  // Hide/reveal/update inst-admin information when inst-admin changes
-  //
-  $("#InstAdmin").change(function() {
-    if ( $("#InstAdmin").val()!="0" ) { 
-      $.post("instuser_js.php", {"user_id":$('#InstAdmin').val()}, function(return_data,status){
-        if ( return_data.user.user_id > 0 ) {
-          var content = '<strong><a href="ManageUser.php?User='+return_data.user.user_id+'">View User Data</a></strong>';
-          $("#AdminInfo").html(content);
-        }
-      },"json");
-      $('#AdminInfo').show();
-    } else {
-      $('#AdminInfo').hide();		// hide div when admin not set
-    }
-  });
-
+  if ( $('#Prov').val() == "" ) {
+    $('#AliasDefs').hide();	// hide div when Prov not set
+  } else {
+    $('#AliasDefs').show();	// show div when Prov has a value
+  }
+    
   // Runs on provider dropdown select box change
   //
   $("#Prov").change(function(){ // change function of listbox
     if ( $('#Prov').val() == "" ) {
       $("[id^=Sushi_]").val("");
+      $('#AliasDefs').hide();	// hide div when Prov not set
     } else {
+      $('#AliasDefs').show();	// show div when Prov has a value
       $.post("instprov_js.php", {"inst_id":$('#INST').val(), "prov_id":$('#Prov').val()}, function(return_data,status){
         $.each(return_data.sushi, function(key,value){
           $("#Sushi_ReqID").val(value.RequestorID);

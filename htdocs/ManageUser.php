@@ -22,15 +22,27 @@
 include_once 'ccplus/sessions.inc.php';
 include_once 'ccplus/auth.inc.php';
 
-// Pull the consortia info based on session variable
+// Setup page header differently if Admin.vs.Manager
 //
-$_CON = ccp_get_consortia($_SESSION['ccp_con_id']);
+$_title = "CC-Plus User Management: ";
+if ( $_SESSION['role'] == ADMIN_ROLE) {
+
+  // Pull the consortia info based on session variable
+  //
+  $_CON = ccp_get_consortia($_SESSION['ccp_con_id']);
+  $_title .= $_CON['name'];
+
+} else {
+
+  $_INST = ccp_get_institutions($_SESSION['user_inst']);
+  $_title .= $_INST['name'];
+}
 
 // Build breadcrumbs, pass to page header builder
 //
-print_page_header("CC-Plus User Management: " . $_CON['name'],TRUE);
+print_page_header($_title,TRUE);
 
-// If "me=1" passed via GET, user gets to see/edit their own profile
+// If "me=1" passed via GET, user will view+edit their own profile
 //
 $_ME = FALSE;
 $_UID = 0;
@@ -45,38 +57,40 @@ if ( isset($_GET['me']) ) {
 //
 if ( isset($_REQUEST['User']) ) { $_UID = $_REQUEST['User']; }
 
-// Check rights; proceed if Admin or $_ME
+// Check rights; proceed if Admin/Manager or $_ME
 //
-if ( ($_SESSION['role'] == ADMIN_ROLE) || $_ME ) {
+if ( ($_SESSION['role'] <= MANAGER_ROLE) || $_ME ) {
 
-// Define an array to hold initial/default form values
-//
-$_user = array();
+  // Define an array to hold initial/default form values
+  //
+  $_user = array();
 
-// IF $_UID=0 , we're creating a user - set initial fields
-// 
-if ( $_UID == 0 ) {
+  // IF $_UID=0 , we're creating a user - set initial fields
+  // 
+  $_TASK = "UPDATE";
+  if ( $_UID == 0 ) {
 
-   $_user['inst_id'] = 0;
-   $_user['first_name'] = "";
-   $_user['last_name'] = "";
-   $_user['email'] = "";
-   $_user['phone'] = "";
-   $_user['password'] = "";
-   $_user['role'] = 20;
-   $_user['optin_alerts'] = 0;
-   $_user['active'] = 1;
-   $_user['last_login'] = "";
-   $_user['password_change_required'] = 1;
+    $_TASK = "CREATE";
+    $_user['inst_id'] = $_SESSION['user_inst'];
+    $_user['first_name'] = "";
+    $_user['last_name'] = "";
+    $_user['email'] = "";
+    $_user['phone'] = "";
+    $_user['password'] = "";
+    $_user['role'] = 20;
+    $_user['optin_alerts'] = 0;
+    $_user['active'] = 1;
+    $_user['last_login'] = "";
+    $_user['password_change_required'] = 1;
 
-// If viewing/editing an existing record, query the database
-//
-} else {
-   $_user = ccp_get_users($_UID);
-}
+  // If viewing/editing an existing record, query the database
+  //
+  } else {
+    $_user = ccp_get_users($_UID);
+  }
 
-// Setup Javascript functions and form
-//
+  // Setup Javascript functions and form
+  //
 ?>
   <script type="text/javascript" src="/include/validators.js"></script>
   <script type="text/javascript">
@@ -144,14 +158,14 @@ if ( $_UID == 0 ) {
     print "        <strong>Administrator</strong>";
   } else {
     print "        <input type=\"text\" id=\"email\" name=\"email\" value=\"" . $_user['email'] . "\" />";
-    if ( $_UID == 0 ) {
+    if ( $_TASK == "CREATE" ) {
       print "        &nbsp; &nbsp;<font color=\"red\"> (required)</font>\n";
     }
   }
 ?>
       </td>
       <td>&nbsp;</td>
-      <td align="right"><label for="phone">Phone</label>
+      <td align="right"><label for="phone">Phone</label></td>
       <td><input type="text" id="phone" name="phone" value="<?php print $_user['phone'] ?>" /></td>
     </tr>
     <tr>
@@ -161,21 +175,21 @@ if ( $_UID == 0 ) {
   // "encrypted". If user changes it, the update script will encrypt and
   // store the given value.
   print "      <td><input type=\"password\" name=\"userpass\" id=\"userpass\"";
-  if ( $_UID > 0 ) {
+  if ( $_TASK == "UPDATE" ) {
     print " value=\"Encrypted!\" />\n";
   } else {
     print " />\n";
   }
-  if ( $_UID == 0 ) {
+  if ( $_TASK == "CREATE" ) {
     print "        &nbsp; &nbsp;<font color=\"red\"> (required)</font>\n";
   }
+  print "      </td>\n";
 ?>
-      </td>
-      <td>&nbsp;</td>
+      <td colspan="3">&nbsp;</td>
     </tr>
     <tr>
-      <td align="right"><label for="chk_show_pass">Display password</label>
-      <td><input type="checkbox" name="chk_show_pass" id="chk_show_pass" />
+      <td align="right"><label for="chk_show_pass">Display password</label></td>
+      <td><input type="checkbox" name="chk_show_pass" id="chk_show_pass" /></td>
       <td>&nbsp;</td>
 <?php
   if ( $_user['last_login'] != "" ) {
@@ -187,62 +201,81 @@ if ( $_UID == 0 ) {
 ?>
     </tr>
     <tr>
-      <td align="right"><label for="optin_alerts">Opt-in for Alerts</label>
+      <td align="right"><label for="optin_alerts">Opt-in for Alerts</label></td>
 <?php
         print "        <td><input type=\"checkbox\" name=\"optin_alerts\"";
         if ( $_user['optin_alerts'] == 1 ) { print " checked"; }
         print " /></td>\n";
 ?>
-      <td colspan="5">&nbsp;</td>
+      <td colspan="3">&nbsp;</td>
     </tr>
-<?php
-  // Admin access displays a dropdown to define user's access
-  // and a checkbox to force a password change on next login
-  //
-  if ( $_SESSION['role'] == ADMIN_ROLE ) {
-
-    $_insts = ccp_get_institutions_ui();
-?>
-    <tr><td colspan="5">&nbsp;</td></tr>
     <tr>
-      <td align="right"><label for="Inst">Institution</label>
+      <td align="right"><label for="IsActive">User account is Active</label></td>
+<?php
+    print "        <td><input type=\"checkbox\" name=\"IsActive\"";
+    if ( $_user['active'] == 1 ) { print " checked"; }
+    print " /></td>\n";
+?>
+      <td colspan="3">&nbsp;</td>
+    </tr>
+    <tr>
+      <td align="right"><label for="force_pwchange">Require new password</label></td>
+<?php
+        print "        <td><input type=\"checkbox\" name=\"force_pwchange\"";
+        if ( $_user['password_change_required'] == 1 ) { print " checked"; }
+        print " /></td>\n";
+?>
+      <td colspan="3">&nbsp;</td>
+    </tr>
+    <tr>
+<?php
+  // Admin access displays an instituion dropdown. Managers and admins get a
+  // selector for role and a checkbox to force a password change on next login
+  //
+  if ( $_SESSION['role'] <= MANAGER_ROLE ) {
+    if ( $_SESSION['role'] == ADMIN_ROLE ) {
+      $_insts = ccp_get_institutions_ui();
+?>
+      <td align="right"><label for="Inst">Institution</label></td>
       <td>
         <select name="Inst" id="Inst" />
 <?php
-    // Populate dropdown with available institutionss
-    //
-    array_unshift($_insts,array("inst_id"=>0,"name"=>"Staff"));
-    foreach ( $_insts as $_inst ) {
-      print "          <option value=\"" . $_inst['inst_id'] . "\"";
-      if ( $_inst['inst_id'] == $_user['inst_id'] ) {
-        print " selected />" . $_inst['name'] . "</option>\n";
-      } else {
-        print " />" . $_inst['name'] . "</option>\n";
+
+      // Populate dropdown with available institutions
+      //
+      array_unshift($_insts,array("inst_id"=>0,"name"=>"Staff"));
+      foreach ( $_insts as $_inst ) {
+        print "          <option value=\"" . $_inst['inst_id'] . "\"";
+        if ( $_inst['inst_id'] == $_user['inst_id'] ) {
+          print " selected />" . $_inst['name'] . "</option>\n";
+        } else {
+          print " />" . $_inst['name'] . "</option>\n";
+        }
       }
-    }
 ?>
         </select>
       </td>
-      <td>&nbsp;</td>
-      <td colspan="2">
-        <label for="IsActive">Account is Active</label>
+      <td colspan="3">&nbsp;</td>
 <?php
-        print "        <input type=\"checkbox\" name=\"IsActive\"";
-        if ( $_user['active'] == 1 ) { print " checked"; }
-        print " />\n";
+    } else {
+      print "    <tr><td colspan=\"5\">";
+      print "<input type='hidden' name='Inst' value='".$_SESSION['user_inst']."'>";
+      print "</td></tr>\n";
+    }	// end-if role is Admin
 ?>
-
-      </td>
     </tr>
     <tr>
-      <td align="right"><label for="CCPRole">Role</label>
+      <td align="right"><label for="CCPRole">Role</label></td>
       <td>
         <select name="CCPRole" id="CCPRole" />
 <?php
-    // Populate dropdown with available roles
+    // Populate dropdown with available roles. Manager is limited to
+    // their role and "below".
     //
     $_roles = ccp_get_roles_ui();
     foreach ( $_roles as $_r ) {
+      if ( $_SESSION['role']!=ADMIN_ROLE &&
+           $_r['role_id'] < $_SESSION['role'] ) { continue; }
       print "          <option value=\"" . $_r['role_id'] . "\"";
       if ( $_r['role_id'] == $_user['role'] ) {
         print " selected />" . $_r['name'] . "</option>\n";
@@ -253,37 +286,15 @@ if ( $_UID == 0 ) {
 ?>
         </select>
       </td>
-      <td>&nbsp;</td>
-      <td colspan="2">
-        <label for="force_pwchange">Force new password on next login</label>
-<?php
-        print "        <input type=\"checkbox\" name=\"force_pwchange\"";
-        if ( $_user['password_change_required'] == 1 ) { print " checked"; }
-        print " />\n";
-?>
-      </td>
+      <td colspan="3">&nbsp;</td>
     </tr>
     <tr><td colspan="5">&nbsp;</td></tr>
 <?php
+  }	// End-if Admin or Manager Role
 
-  }	// End-if Admin-Role
-
-  // If non-admin or viewing "me", build submit button as "Update"
+  // Setup buttons and label according to $_TASK
   //
-  if ( $_ME || $_SESSION['role'] != ADMIN_ROLE ) {
-?>
-    <tr>
-      <td align="right">
-        <input type="submit" name="Update" value="Update">
-      </td>
-      <td colspan="4">&nbsp;</td>
-    </tr>
-<?php
-  // Admins see either "Create" for a new entry or 2 buttons
-  // (Update and Delete) if viewing an existing user
-  //
-  } else {
-    if ( $_UID == 0 ) {		// Submit is Create for a new user
+  if ( $_TASK == "CREATE" ) {
 ?>
     <tr>
       <td align="right">
@@ -292,7 +303,7 @@ if ( $_UID == 0 ) {
       <td colspan="4">&nbsp;</td>
     </tr>
 <?php
-    } else {		// Submit row of 2 buttons for Update or Delete
+  } else {		// Submit row of 2 buttons for Update or Delete
 ?>
     <tr>
       <td>&nbsp;</td>
@@ -301,7 +312,11 @@ if ( $_UID == 0 ) {
       </td>
       <td>&nbsp;</td>
 <?php
-    if ( $_user['email'] != "Administrator" ) {		// No delete option for "Administrator" username
+    // Add delete option for managers and admins, as long as the
+    // user being edited IS NOT the administrator account.
+    //
+    if ( ($_SESSION['role']<=MANAGER_ROLE) &&
+         ($_user['email'] != "Administrator") ) {
        print "      <td align=\"right\">\n";
        print "        <input type=\"submit\" name=\"Delete\" value=\"Delete User\">\n";
        print "      </td>\n";
@@ -312,14 +327,13 @@ if ( $_UID == 0 ) {
       <td>&nbsp;</td>
     </tr>
 <?php
-    }
   }
 ?>
   </table>
   </form>
 <?php
 
-// User-privilege error - not seeking own profile and not admin
+// User-privilege error - not seeking own profile and not admin or manager
 //
 } else {
    print_noaccess_error();

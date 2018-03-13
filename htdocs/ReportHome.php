@@ -38,8 +38,8 @@ $_INST = 0;
 if ( isset($_REQUEST['Inst'])) { $_INST = $_REQUEST['Inst']; }
 $_PROV = 0;
 if ( isset($_REQUEST['Prov'])) { $_PROV = $_REQUEST['Prov']; }
-$_PLAT = 0;
-if ( isset($_REQUEST['Plat'])) { $_PLAT = $_REQUEST['Plat']; }
+$_ZRECS = 'show';
+if ( isset($_REQUEST['Zrecs'])) { $_ZRECS = $_REQUEST['Zrecs']; }
 $_DEST = 0;
 if ( isset($_REQUEST['Dest'])) { $_DEST = $_REQUEST['Dest']; }
 $_RUNIT = FALSE;
@@ -57,22 +57,18 @@ if ( count($alerts) > 0 ) {
 // Limit select boxes to those with matching records in the time-range
 // based on all the filter-settings.
 //
-$range = ccp_stats_available($_REPT, $_PROV, $_PLAT, $_INST );
+$range = ccp_stats_available($_REPT, $_PROV, 0, $_INST );
 $filt_ym = createYMarray($range['from'], $range['to']);
 if ( $_FROMYM == "" ) { $_FROMYM = $range['from']; }
 if ( $_TOYM == "" ) { $_TOYM = $range['to']; }
 $year_mons = createYMarray($_FROMYM, $_TOYM);
-$filt_reports = ccp_repts_available($_FROMYM,$_TOYM,$_PROV,$_PLAT,$_INST);
-// $filt_providers = ccp_stats_ID_list("PROV",$_REPT,$_FROMYM,$_TOYM,0,$_PLAT,$_INST);
+$filt_reports = ccp_repts_available($_FROMYM,$_TOYM,$_PROV,0,$_INST);
+// $filt_providers = ccp_stats_ID_list("PROV",$_REPT,$_FROMYM,$_TOYM,0,0,$_INST);
 $filt_providers = ccp_stats_ID_list("PROV",$_REPT,$_FROMYM,$_TOYM,0,0,$_INST);
 if ( count($filt_providers) > 1 ) {
   array_unshift($filt_providers,array("prov_id"=>0,"name"=>"ALL"));
 }
-$filt_plats = ccp_stats_ID_list("PLAT",$_REPT,$_FROMYM,$_TOYM,$_PROV,0,$_INST);
-if ( count($filt_plats) > 1 ) {
-  array_unshift($filt_plats,array("plat_id"=>0,"name"=>"ALL"));
-}
-$filt_insts = ccp_stats_ID_list("INST",$_REPT,$_FROMYM,$_TOYM,$_PROV,$_PLAT,0);
+$filt_insts = ccp_stats_ID_list("INST",$_REPT,$_FROMYM,$_TOYM,$_PROV,0,0);
 if ( count($filt_insts) > 1 ) {
   array_unshift($filt_insts,array("inst_id"=>0,"name"=>"ALL"));
 }
@@ -84,10 +80,10 @@ $all_views = array("Jrnl"=>"By Journal","Inst"=>"By Institution",
 //
 if ( $_RUNIT ) {
   if ( $_REPT == "JR5" ) {
-    $stats_counts = ccp_jr5_usage( $_PROV, $_PLAT, $_INST, $_FROMYM, $_TOYM, $_VIEW );
+    $stats_counts = ccp_jr5_usage( $_PROV, 0, $_INST, $_FROMYM, $_TOYM, $_VIEW );
   } else {
     $_ordby = "Total_" . $_JR1COL . " DESC";
-    $stats_counts = ccp_jr1_usage( $_PROV, $_PLAT, $_INST, $_FROMYM, $_TOYM, $_VIEW, $_ordby );
+    $stats_counts = ccp_jr1_usage( $_PROV, 0, $_INST, $_FROMYM, $_TOYM, $_VIEW, $_ordby );
   }
 
   // Get info / counts of stats alerts
@@ -246,17 +242,12 @@ if ( $_DEST == "HTML" ) {
 ?>
         </select>
       </td>
-      <td align="left"><label for="Plat"><h4>Filter by Platform</h4></label></td>
+      <td align="left"><label for="Zrecs"><h4>Filter Zero-Records</h4></label></td>
       <td>&nbsp;</td>
       <td align="left">
-        <select name="Plat" id="Plat">
-<?php
-  foreach ( $filt_plats as $_plat ) {
-    print "          <option value=\"" . $_plat['plat_id'] . "\"";
-    print ( $_PLAT == $_plat['plat_id'] ) ? " selected" : "";
-    print ">" . $_plat['name'] . "</option>\n";
-  }
-?>
+        <select name="Zrecs" id="Zrecs">
+          <option value="show" selected>Include zero-records</option>
+          <option value="skip">Exclude zero-records</option>
         </select>
       </td>
     </tr>
@@ -370,6 +361,7 @@ if ( $_RUNIT ) {
       if ( count($stats_counts) > 0 ) {
         $_ttl_col = "Total" . "_" . $_JR1COL;
         foreach ( $stats_counts as $_data ) {
+          if ( $_data['Total_TTL']==0 && $_ZRECS=="skip" ) { continue; }
           $row  = "      <tr>\n";
           $row .= "        <td align='left'>" . $_data['Title'] . "</td>\n";
           $row .= "        <td align='left'>" . $_data['provider'] . "</td>\n";
@@ -430,10 +422,11 @@ if ( $_RUNIT ) {
     </thead>
     <tbody id="Summary">
 <?php
-      // Print data records; form inputs will allow user to rebuild and/or sort it
+      // Print JR5 data records; form inputs will allow user to rebuild and/or sort it
       //
       if ( count($stats_counts) > 0 ) {
         foreach ( $stats_counts as $_data ) {
+          if ( $_data['Total']==0 && $_ZRECS=="skip" ) { continue; }
           $row  = "      <tr>\n";
           $row .= "        <td align='left'>" . $_data['Title'] . "</td>\n";
           $row .= "        <td align='left'>" . $_data['provider'] . "</td>\n";
@@ -478,7 +471,7 @@ if ( $_RUNIT ) {
     $rpt_info  = "CC-Plus " . $_REPT . " Summary Report Created: ";
     $rpt_info .= date("d-M-Y G:i") . "\nConsortium: " . $_CON['name'] . "\n";
     $rpt_info .= "Date Range: " . $_FROMYM . " to " . $_TOYM . "\n\n";
-    if ( $_INST!=0 || $_PROV!=0 || $_PLAT!=0 ) {
+    if ( $_INST!=0 || $_PROV!=0 ) {
       $limits = "";
       if ( $_INST!=0 ) {
         $_inst = ccp_get_institutions($_INST);
@@ -488,11 +481,6 @@ if ( $_RUNIT ) {
         $_prov = ccp_get_providers($_PROV);
         $limits .= ($limits!="") ? "," : "";
         $limits .= $_prov['name'];
-      }
-      if ( $_PLAT!=0 ) {
-        $_plat = ccp_find_platform("",$_PLAT);
-        $limits .= ($limits!="") ? "," : "";
-        $limits .= $_plat['name'];
       }
       if ( $limits != "" ) { $rpt_info .= "Limited By: " . $limits . "\n"; }
     }
@@ -528,8 +516,6 @@ if ( $_RUNIT ) {
     $out_file = "CCPLUS_";
     if ( $_INST!=0 ) { $out_file .= "Inst".$_INST."_"; }
     if ( $_PROV!=0 ) { $out_file .= "Prov".$_PROV."_"; }
-    if ( $_PLAT!=0 ) { $out_file .= "Plat".$_PLAT."_"; }
-    // $out_file = $_REPT."_".$_FROMYM."_".$_TOYM."_by_".$_VIEW.".csv";
     $out_file = $_REPT."_".$_FROMYM."_".$_TOYM."_";
     $out_file .= ($_VIEW == "Both") ? "Combined.csv" : "by_".$_VIEW.".csv";
     header( 'Content-Encoding: UTF-8');
@@ -543,6 +529,11 @@ if ( $_RUNIT ) {
     // Print the rows
     //
     foreach ( $stats_counts as $_data ) {
+      if ($_REPT == 'JR1') {
+        if ($_data['Total_TTL']==0 && $_ZRECS=="skip" ) { continue; }
+      } else if ($_REPT == 'JR5') {
+        if ( $_data['Total']==0 && $_ZRECS=="skip" ) { continue; }
+      }
       $output = array();
       $output[] = $_data['Title'];
       $output[] = $_data['provider'];

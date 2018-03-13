@@ -604,7 +604,8 @@ if (!function_exists("ccp_get_alert_settings")) {
 
     // Setup the query
     //
-    $_qry  = "SELECT ALS.*, Met.legend, Rpt.Report_Name, Rpt.revision FROM alert_settings AS ALS";
+    $_qry  = "SELECT ALS.*, Met.col_xref, Met.legend, Rpt.Report_Name, Rpt.revision";
+    $_qry .= " FROM alert_settings AS ALS";
     $_qry .= " LEFT JOIN ccplus_global.Metrics AS Met ON ALS.metric_xref=Met.ID";
     $_qry .= " LEFT JOIN ccplus_global.Reports AS Rpt ON Met.rept_id=Rpt.ID";
     if ( $_stat != "ALL" ) { $_qry .= " WHERE status=$_stat"; }
@@ -644,14 +645,13 @@ if (!function_exists("ccp_get_alerts")) {
 
     // Setup the query
     //
-    $_qry  = "SELECT Al.*, Met.legend, Pr.name AS prov_name, Inst.name AS inst_name,";
+    $_qry  = "SELECT Al.*, Met.legend, Pr.name AS prov_name,";
     $_qry .= " CONCAT(Usr.first_name, ' ', Usr.last_name) AS user_name, Rpt.Report_Name,";
     $_qry .= " DATE_FORMAT(Al.time_stamp,'%Y-%m-%d') as ts_date FROM alerts AS Al";
     $_qry .= " LEFT JOIN alert_settings AS Ast ON Al.settings_id=Ast.ID";
     $_qry .= " LEFT JOIN ccplus_global.Metrics AS Met ON Ast.metric_xref=Met.ID";
     $_qry .= " LEFT JOIN ccplus_global.Reports AS Rpt ON Met.rept_id=Rpt.ID";
     $_qry .= " LEFT JOIN provider AS Pr ON Al.prov_id=Pr.prov_id";
-    $_qry .= " LEFT JOIN institution AS Inst ON Al.inst_id=Inst.inst_id";
     $_qry .= " LEFT JOIN users AS Usr ON Al.modified_by=Usr.user_id";
 
     // Setup where clause
@@ -1082,56 +1082,6 @@ if (!function_exists("ccp_stats_compliance")) {
     if ( $compliance == "") { $compliance = "None"; }
     return $compliance;
 
-  }
-}
-
-// Function to retrieve stats-metrics details
-// Arguments: $metric_id : filter by a specific metric
-// Returns : $metric : a row of info for a single metric
-//              OR
-//           $metrics : an array of rows for all metrics found
-//
-if (!function_exists("ccp_get_metric")) {
-  function ccp_get_metric($metric_id=0) {
-
-    // Setup database connection
-    //
-    global $ccp_usr_cnx;
-    if ( !$ccp_usr_cnx ) { $ccp_usr_cnx = ccp_open_db(); }
-
-    // Setup the query
-    //
-    $_qry  = "SELECT SM.*,";
-    $_qry .= " IF (SM.type='COUNTER', CR.name, CX.name) AS report FROM stats_metrics AS SM";
-    $_qry .= " LEFT JOIN counter_reports as CR ON (SM.xrefID=CR.ID AND SM.type='COUNTER')";
-    $_qry .= " LEFT JOIN custom_reports AS CX ON (SM.xrefID=CX.ID AND SM.type='CUSTOM')";
-    if ( $metric_id != 0 ) {
-      $_qry .= " WHERE SM.ID=$metric_id";
-    } else {
-      $metrics = array();
-    }
-
-    // Execute query, prepare results
-    //
-    try {
-      $_result = $ccp_usr_cnx->query($_qry);
-      while ( $row = $_result->fetch(PDO::FETCH_ASSOC) ) {
-        if ( $metric_id != 0 ) {
-          $metric = $row;
-        } else {
-          array_push($metrics,$row);
-        }
-      }
-    } catch (PDOException $e) {
-      echo $e->getMessage();
-    }
-
-
-    if ( $metric_id == 0 ) {
-      return $metrics;
-    } else {
-      return $metric;
-    }
   }
 }
 
@@ -1695,43 +1645,35 @@ if (!function_exists("ccp_FY_byrange")) {
 }
 
 // Function to insert alert table records. Inserts only happen if the alert
-// is not yet set. Some arguments apply only to stats, others only to stats,
-// others only to financials.
+// is not yet set.
 //
 // Arguments:
-//   $_type : The alert type (xRef to ::alert_types:ID) (1=fin,2=stat,etc.)
 //   $_stat : 'Active', 'Silent', or 'Pending'
-//   $_vend : vendor ID
-//   $_rsrc : resource ID
-//   $_alrt : Alert ID to signal (xRef to ::alert_settings:ID)
-//   $_fail : Failed ingest setting ID (xRef to ::stats_settings:ID) , default=0
-//   $_con  : contract ID , default=0
-//   $_inv  : invoice ID , default=0
+//   $_prov : Provider ID (required)
+//   $_alrt : Alert Settings ID to signal (xRef to ::alert_settings:ID)
+//   $_fail : Failed ingest setting ID (xRef to ::sushi_settings:ID) , default=0
 //
 // Returns:
 //   $success  : 0=no , 1=yes
 //
 if (!function_exists("ccp_set_alert")) {
-  function ccp_set_alert($_type, $_stat, $_vend, $_rsrc, $_alrt=0, $_fail=0, $_con=0, $_inv=0) {
+  function ccp_set_alert($_stat, $_yearmon, $_prov, $_alrt=0, $_fail=0) {
 
     // Setup database connection
     //
     global $ccp_adm_cnx;
     if ( !$ccp_adm_cnx ) { $ccp_adm_cnx = ccp_open_db("","Admin"); }
 
-    // Check arguments; either of vend/rsrc must be give, and one of the 4 ID's
+    // Check arguments; provider required and one of either $_alrt or $_fail
     //
-    if ( ( $_vend==0 && $_rsrc==0 ) ||
-         ( $_alrt==0 && $_fail==0 && $_con==0 && $_inv==0) ) { return 0; }
+    if ( ( $_prov==0 ) || ( $_alrt==0 && $_fail==0 ) ) { return 0; }
 
     // Setup the query to check if alert already set
     //
-    $_qry  = "SELECT count(*) as seen FROM alerts WHERE alert_type=" . $_type;
-    $_qry .= " AND vend_id=" . $_vend . " AND rsrc_id=" . $_rsrc;
-    if ( $_alrt != 0 ) { $_qry .= " AND alert_xref=" . $_alrt; }
-    if ( $_fail != 0 ) { $_qry .= " AND failed_xref=" . $_fail; }
-    if  ( $_con != 0 ) { $_qry .= " AND con_id=" . $_con; }
-    if  ( $_inv != 0 ) { $_qry .= " AND inv_id=" . $_inv; }
+    $_qry  = "SELECT count(*) as seen FROM alerts WHERE";
+    $_qry .= " prov_id=" . $_prov;
+    if ( $_alrt != 0 ) { $_qry .= " AND settings_id=" . $_alrt; }
+    if ( $_fail != 0 ) { $_qry .= " AND failed_id=" . $_fail; }
 
     // Execute query and get the count
     //
@@ -1750,14 +1692,14 @@ if (!function_exists("ccp_set_alert")) {
     if ( $count == 0 ) {
 
       $_qry  = "INSERT INTO alerts";
-      $_qry .= " (alert_type,status,vend_id,rsrc_id,alert_xref,failed_xref,con_id,inv_id)";
-      $_qry .= " VALUES (?,?,?,?,?,?,?,?)";
+      $_qry .= " (yearmon,settings_id,failed_id,status,prov_id)";
+      $_qry .= " VALUES (?,?,?,?,?)";
 
       // Insert the record
       //
       try {
         $sth = $ccp_adm_cnx->prepare($_qry);
-        $sth->execute(array($_type,$_stat,$_vend,$_rsrc,$_alrt,$_fail,$_con,$_inv));
+        $sth->execute(array($_yearmon,$_alrt,$_fail,$_stat,$_prov));
       } catch (PDOException $e) {
         echo $e->getMessage();
         return 0;

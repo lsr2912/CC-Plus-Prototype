@@ -21,12 +21,28 @@
 require_once('ccplus/statsutils.inc.php');
 include_once 'ccplus/auth.inc.php';
 
+// Check if admin or manager, set flags
+//
+$is_admin = 0;
+$is_manag = 0;
+if ( isset($_SESSION['role']) ) {
+  if ( $_SESSION['role'] == ADMIN_ROLE ) { $is_admin = 1; }
+  if ( $_SESSION['role'] == MANAGER_ROLE ) { $is_manag = 1; }
+}
+
 // Get Provider fields
 //
 $_PROV = 0;
 if ( isset($_REQUEST['prov_id']) ) { $_PROV=$_REQUEST['prov_id']; }
 $_INST = 0;
-if ( isset($_REQUEST['inst_id']) ) { $_INST=$_REQUEST['inst_id']; }
+if ( $is_manag ) {
+  $_INST = $_SESSION['user_inst'];
+} else {
+  if ( isset($_REQUEST['inst_id']) ) { $_INST=$_REQUEST['inst_id']; }
+}
+
+// Return empty array of settings if inst or prov is zero
+//
 $settings = array();
 if ( $_PROV==0 || $_INST==0 ) { 
   echo json_encode(array('settings'=>$settings));

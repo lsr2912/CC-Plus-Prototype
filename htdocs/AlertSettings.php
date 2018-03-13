@@ -102,7 +102,7 @@ if ( $_SESSION['role'] == ADMIN_ROLE ) {
     </tr>
     <tr>
       <td colspan="7" class="notice">
-        <p>Alerts are automatically set if/when a scheduled ingest faile or returns an error during processing.<br />
+        <p>Alerts are automatically set if/when a scheduled ingest fails or returns an error during processing.<br />
         The settings below provide additional tests for create alerts based on boudaries or conditions related
         to specific data values and metrics.&nbsp; If a defined alert is enabled (checked), emails will be sent to 
         to affiliated users who have opted in to receive them. Reports including "alerted" datasets will be annotated

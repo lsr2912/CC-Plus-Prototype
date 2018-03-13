@@ -28,8 +28,10 @@ include_once 'ccplus/counter4_processors.php';
 // Admins and Editors can use this page
 //
 $ERR = 1;
+$is_admin = FALSE;
 if ( isset($_SESSION['role']) ) {
   if ( $_SESSION['role'] <= MANAGER_ROLE ) { $ERR = 0; }
+  if ( $_SESSION['role'] == ADMIN_ROLE ) { $is_admin = TRUE; }
 }
 
 // Set some defaults
@@ -174,19 +176,30 @@ if ( $ERR == 0 ) {
       </td>
     </tr>
     <tr>
+<?php
+      if ( $is_admin ) {
+?>
       <td colspan="2" align="right"><label for="Inst">Institution</label></td>
       <td align="left">
         <select name="Inst" id="Inst">
           <option value="">Choose an Institution</option>
 <?php
-      // Populate the initial institution list
-      //
-      foreach ( ccp_get_institutions_ui() as $_i) {
-        print "          <option value=\"" . $_i['inst_id'] . "\">" . $_i['name'] . "</option>\n";
-      }
+        // Populate the initial institution list
+        //
+        foreach ( ccp_get_institutions_ui() as $_i) {
+          print "          <option value=\"" . $_i['inst_id'] . "\">" . $_i['name'] . "</option>\n";
+        }
 ?>
         </select>
       </td>
+<?php
+      } else {	// Managers limited to their own inst
+        $__inst = ccp_get_institutions($_SESSION['user_inst']);
+        print "      <td colspan=\"2\" align=\"right\"><h4>Institution</h4></td>\n";
+        print "      <td align=\"left\">" . $__inst['name'] . "\n";
+        print "        <input type='hidden' name='Inst' value='".$_SESSION['user_inst']."'></td>\n";
+      }
+?>
       <td>&nbsp;</td>
       <td align="right"><label for="ReportMo">Usage for</label></td>
       <td colspan="2" align="left">

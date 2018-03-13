@@ -106,6 +106,10 @@ if ( isset($_GET['Cons']) ) { $con_id = $_GET['Cons']; }
 if ( $con_id != 0 ) { 
   $consortia = array( ccp_get_consortia($con_id) );
   if ( isset($_GET['Inst']) ) { $inst_id = $_GET['Inst']; }
+  if ( !isset($consortia[0]['ccp_key']) ) {
+    print "\nError:: Consortium ID: " . $con_id . " not found!\n";
+    exit;
+  }
 } else {
   $consortia = ccp_get_consortia();
 }

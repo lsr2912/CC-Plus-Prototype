@@ -63,6 +63,7 @@ $(document).ready(function() {
             } else {
               row += ">&nbsp;</td>\n";
             }
+            row += "<td align='center'>"+value.timestamp.substr(0,10)+"</td>";
             row += "</tr>";
           } else {
             var row="<tr><td colspan=5 align='center'><p><strong>";

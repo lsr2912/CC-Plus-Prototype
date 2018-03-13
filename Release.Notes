@@ -1,4 +1,42 @@
-Update : 3/5/2018
+Update : 3/12/2018
+  * agents/nightly::Sushi_ingest.php
+    - Argument check for consortium ID (for running via CLI)
+  * agents/nightly::Update_Alerts.php , CCP_nightly.sh
+    - Automation for checking and setting alert conditions
+  * sql::ccplus_con_template.sql , ccplus_global.sql
+    - schema changes for alert-handling and some cleanup
+  * sql::Update_031218_Global.sql Update_031218_AllCons.sql
+    - SQL-format schema updates for existing instances
+  * htdocs::
+    - Changes for implementing "Manager" role rights/limits across the Admin site:
+      AdminHome.php , alert_dash_js.php , AlertsDash.php , ImExSettings.php , ImportSettings.php ,
+      IngestLog.php , list_users_js.php , ListUsers.php , ManageInst.php , ManageProvider.php ,
+      ManageUser.php , maning_js.php , ManualIngest.php , ReportDetail.php , reptdate_js.php ,
+      reptprov_js.php , UpdateInst.php , UpdateUser.php
+    - ManageInst.php : also changed to remove institutional admin field and to suppress the
+                       name-alias options until a provider is chosen
+    - UpdateInst.php : also changed to remove institutional admin field handling
+    - ReportHome.php : changes to allow filtering of zero-records
+    - UpdateAlerts.php : New script, form action target for updating existing alerts
+    - AlertSettings.php : typo fix
+  * htdocs/include::
+    - Changes for implementing "Manager" role rights/limits across the Admin site:
+      Admin_Home.js , Alert_Dash.js , List_Users.js , Report_Details.js
+    - Manage_Inst.js : Manager role rights/limits, show/hide Alias settings, remove inst-admin
+    - Ingest_Log.js : timestamp was not being added to row on page-rebuild from .js
+  * libraries::counter4_processors.php
+    - remove metric_xref from *_Report_Data table insert(s)
+  * libraries::dbutils.php
+    - remove unused function (ccp_get_metric)
+    - updates to support setting and retrieval of alerts
+  * libraries::statsutils.inc.php
+    - new function: ccp_total_usage - returns cumulative counts
+  * libraries::helpers.inc.php
+    - changes to support admin.vs.manager
+    - new function to return #-months between 2 date strings
+  * libraries::footer.inc.html.php
+    - updated datestamp for this release
+Update : 3/05/2018
   * agents::Sushi_ingest.php
     - Limit log entries to once/consortium and only when if requests happen (less chatty)
   * htdocs::ReportHome.php
