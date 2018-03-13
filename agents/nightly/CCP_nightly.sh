@@ -18,7 +18,7 @@ php ./Retry_Failed_Ingest.php
 #
 # Update system alerts
 #
-php ./Update_CCP_Alerts.php
+php ./Update_Alerts.php
 #
 # Send email notices
 #
