@@ -1,8 +1,5 @@
 #!/usr/bin/php
 <?php
-//
-// WARNING :: This script not ready (yet), still needs work
-//
 //---------------------------------------------------------------------------------------
 // Copyright 2017,2018 Scott Ross
 // This file is part of CC-Plus.
@@ -28,87 +25,94 @@
 //     * The alerts are formatted into strings
 //     * The users table is then read for user info, including the user's alert
 //       preferences. If the user wants emails for one or more alert types,
-//     * The message strings and combined into a an email and sent.
+//       the message strings are combined into a an email and sent.
 //
 //---------------------------------------------------------------------------------------
 // Load templates and helper functions
 //
 include_once('ccplus/constants.inc.php');
 include_once('ccplus/dbutils.inc.php');
+global $ccp_adm_cnx;
 global $ccp_usr_cnx;
-
-// If no active alerts, bail out
-//
-if ( count($active_alerts) == 0 ) { exit; }
 
 // Get global consortia info
 //
 $consortia = ccp_get_consortia();
 
-foreach ( $consortia as $_con ) {
+foreach ( $consortia as $_Con ) {
 
-  // Open database for the consortium
+  // Open database handles (force new ones)
   //
-  $_db = "ccplus_" . $consortia['ccp_key'];
-  $ccp_usr_cnx = ccp_open_db($_db);
+  $_db = "ccplus_" . $_Con['ccp_key'];
+  $ccp_usr_cnx = ccp_open_db($_db, "User", 1);
+  $ccp_adm_cnx = ccp_open_db($_db, "Admin", 1);
 
-  // Pull all active alerts and setup array to hold messages
+  // Get all active alerts and alert settings
+  // If no active alerts, check next consortium
   //
   $active_alerts = ccp_get_alerts();
-  $messages = array();
+  if ( count($active_alerts) == 0 ) { continue; }
+  $alert_settings = ccp_get_alert_settings();
 
+  // Build an array to hold messages by looping through active alerts
+  //
+  $messages = array();
   foreach ( $active_alerts as $alert ) {
 
     // Setup institution fields and index
     //
-    $_inst = $alert['inst_id'];
-    if ( $alert['inst_name'] != "") {
-      $messages[$_inst]['string'] .= "Alerts for : ";
-      $messages[$_inst]['string'] .= trim($alert['inst_name']) . "\n";
+    $_PROV = $alert['prov_id'];
+    if ( !isset($messages[$_PROV]) ) {	// init provider first time
+      $messages[$_PROV] = array();
+      $messages[$_PROV]['string'] = "";
+    }
+    if ( $alert['prov_name'] != "") {
+      $messages[$_PROV]['string'] .= "Alert On Provider: ";
+      $messages[$_PROV]['string'] .= $alert['prov_name'] . "\n";
     }
 
     // One of settings_id or failed_id should be non-zero.
     //
     $_condition = "Unknown";
     if ( $alert['settings_id'] != 0 ) {
-      $_condition = $alert['legend'];
+      $_condition = "  " . $alert['legend'] . " for " . $alert['yearmon'];
+      $_condition .= " (" . $alert['Report_Name'] . ")";
+      $_condition .= " varies by >" . $alert_settings[$alert['settings_id']]['variance'];
+      $_condition .= "% compared to the last " . $alert_settings[$alert['settings_id']]['timespan'] . " months";
     } else if ( $alert['failed_id'] != 0 ) {
-      $_condition = "Failed Stats Ingest";
+      $_condition  = "  Ingest Failed: " . $alert['Report_Name'] . " :: " . $alert['yearmon'] . "\n";
+      $_condition .= "               : " . $alert['detail'];
     }
 
     // Format the alert message and add to the array
     //
-    $messages[$_inst]['string'] .= "  Condition : " . $_condition . " :";
-    if ( $alert['prov_name'] != "") {
-      $messages[$_inst]['string'] .= " Provider: ";
-      $messages[$_inst]['string'] .= trim($alert['prov_name']);
-    }
-    $messages[$_inst]['string'] .= "\n";
+    $messages[$_PROV]['string'] .= "  Condition : " . $_condition . "\n";
+
   }	// end foreach active alert
 
   // Get all ACTIVE user profiles and loop through them
   //
   foreach ( ccp_get_users(0,1) as $user ) {
 
-    // Skip non-admins if opt-in is not set 
+    // If user not opting-in, skip 'em
     //
-    if ( !($user['optin_alerts']) && $user['role']!=ADMIN_ROLE ) {
-      continue;
-    }
+    if ( !($user['optin_alerts']) ) { continue; }
+
+    // For now... only admins get alerted
+    //
+    if ( $user['role']!=ADMIN_ROLE ) { continue; }
 
     // Loop through $messages
     //
-    $mail_text  = "\n\nThe CC-Plus System has active alert conditions\n";
-    $mail_text .= "All active alerts are summarized here: ";
-    $mail_text .= CCPLUSROOTURL . "AlertsDash.php?Astat=Active\n\n";
+    $mail_text  = "\nThe CC-Plus System has detected active alert conditions";
+    $mail_text .= " for the " . $_Con['name'] . " Consortium,\n";
+    $mail_text .= " summarized here: " . CCPLUSROOTURL . "AlertsDash.php?Astat=Active\n\n";
     foreach ( $messages as $_msg ) {
 
-      // Users (managers or not), only get alerte for their own inst,
-      // admins get everything.
+      // If alerts get categorize by-inst, this is where we'll
+      // filter what gets reported. Admins get everything
       //
-      if ( $user['inst_id']!=$_msg['inst_id'] && $user['role']!=ADMIN_ROLE ) {
-         continue;
-      }
+      // if ( $user['inst_id']!=$_msg['inst_id'] && $user['role']!=ADMIN_ROLE ) { continue; }
 
       // Build the mail text
       //
@@ -118,12 +122,16 @@ foreach ( $consortia as $_con ) {
 
     // Build and send the email message
     //
-    $to   = $user['email'];
+    if ( $user['email'] == "Administrator" ) {
+      $to = $_Con['email'];
+    } else {
+      $to   = $user['email'];
+    }
     $subj = "CC-Plus System Alerts";
     $from = "From: ccplus_system@ccplus.org\r\n";
 
     if ( !mail( $to, $subj, $mail_text, $from ) ) {
-      print "Failed to send email to : " . $user['email'] . "\n";
+      print "Failed to send email for " . $_Con['ccp_key'] . " to " . $to . "\n";
     }
   }	// end for all users
 }	// end foreach consortium

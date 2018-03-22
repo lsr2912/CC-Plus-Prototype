@@ -77,18 +77,23 @@ $(document).ready(function() {
              } else {
                row += " -- </td>";
              }
-             // Condition
+             // Condition and Report name
              //
              row += "<td align='center'>";
-             if ( value.legend != "" ) {
-               row += value.legend + "</td>";
+             if ( value.settings_id > 0 ) {
+               if ( value.legend != "" ) {
+                 row += value.legend + "</td>";
+               } else {
+                 row += " -- </td>";
+               }
              } else {
-               row += " -- </td>";
+               row += "Ingest Failed: " + value.detail + "</td>";
              }
+             row += "<td align='center'>"+value.Report_Name+"</td>";
              //
              // Provider as link for admins, otherwise just the name
              //
-             row += "<td align='left'>";
+             row += "<td align='center'>";
              if ( value.prov_id == 0 ) {
                row += "--</td>";
              } else {
@@ -100,7 +105,7 @@ $(document).ready(function() {
                }
              }
              //
-             // Timestamp date and modified-by
+             // Timestamp, and modified-by
              // 
              row += "<td align='center'>"+value.ts_date+"</td>";
              row += "<td align='center'>";

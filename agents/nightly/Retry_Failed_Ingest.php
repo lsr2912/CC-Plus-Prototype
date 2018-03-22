@@ -49,10 +49,18 @@ foreach ( $consortia as $_Con ) {
   // less than MAX (from constants.inc) that happened before today.
   //
   $failed = ccp_failed_ingests( 0, MAX_INGEST_RETRIES );
+  $logmsg = false;
 
   // Loop through the settings and retry the reports
   //
   foreach ( $failed as $target ) {
+
+    // Add a message to the log (once/consortium) when retries happen
+    //
+    if ( !$logmsg ) {
+      fwrite(STDOUT,"Retries Begin For: " . $_Con['ccp_key'] . "\n");
+      $logmsg = true;
+    }
 
     // Call out the SUSHI ingest
     //

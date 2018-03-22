@@ -38,6 +38,8 @@
 include_once('ccplus/constants.inc.php');
 include_once('ccplus/dbutils.inc.php');
 include_once('ccplus/statsutils.inc.php');
+global $ccp_usr_cnx;
+global $ccp_adm_cnx;
 
 // Pull info on all consortia in the system
 //

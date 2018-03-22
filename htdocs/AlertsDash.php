@@ -145,8 +145,9 @@ print "  <table id=\"data_table\" class=\"tablesorter\" cellpadding=\"2\">\n";
       <tr>
         <th id="status"      width='10%' align='left'>Status</th>
         <th id="yearmon"     width='10%' align='center'>Year-Month</th>
-        <th id="condition"   width='30%' align='center'>Condition</th>
-        <th id="provider"    width='20%' align='left'>Provider</th>
+        <th id="condition"   width='25%' align='center'>Condition</th>
+        <th id="report"      width='15%' align='center'>Report</th>
+        <th id="provider"    width='15%' align='left'>Provider</th>
         <th id="last_update" width='15%' align='center'>Last Updated</th>
         <th id="modified_by" width='15%' align='right'>Modified By</th>
       </tr>
@@ -181,9 +182,15 @@ foreach ( $alerts as $_alert ) {
    print $_alert['yearmon'] . "</td>\n";
   }
 
-  // Metrics.legend is displayed as the "condition"
+  // Display Metrics.legend as the "condition" when settings_id is set,
+  // otherwise display failed ingest details
   //
-  print "        <td align='center'>" . $_alert['legend'] . "</td>\n";
+  if ( $_alert['settings_id'] != 0 ) {
+    print "        <td align='center'>" . $_alert['legend'] . "</td>\n";
+  } else {
+    print "        <td align='center'>Ingest Failed: " . $_alert['detail'] . "</td>\n";
+  }
+  print "        <td align='center'>" . $_alert['Report_Name'] . "</td>\n";
 
   // Provider column holds links to management site if $is_admin
   //

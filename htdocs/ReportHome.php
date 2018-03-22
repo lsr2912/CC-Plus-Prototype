@@ -50,7 +50,7 @@ if ( isset($_POST['Submit']) ) { $_RUNIT = TRUE; }
 $alert_url = "";
 $alerts = ccp_get_alerts("Active",$_PROV);
 if ( count($alerts) > 0 ) {
-  $alert_url  = "/AlertsDash.php?Astat=Active";
+  $alert_url  = CCPLUSROOTURL . "AlertsDash.php?Astat=Active";
   $alert_url .= ($_PROV==0) ? "" : "&amp;prov_id=".$_PROV;
 }
 
@@ -86,10 +86,10 @@ if ( $_RUNIT ) {
     $stats_counts = ccp_jr1_usage( $_PROV, 0, $_INST, $_FROMYM, $_TOYM, $_VIEW, $_ordby );
   }
 
-  // Get info / counts of stats alerts
+  // Get info / counts of all alerts implicated in this report
   //
   $alert_status = ccp_get_enum_values("alerts","status");
-  $alerts = ccp_get_alerts("ALL",0);
+  $alerts = ccp_get_alerts("ALL",$_PROV,$_REPT,$_FROMYM, $_TOYM);
   $alert_counts = array();
   $total_count = 0;
   foreach ( $alert_status as $_status ) {
@@ -124,34 +124,6 @@ if ( $_DEST == "HTML" ) {
   print "  <link href=\"" . CCPLUSROOTURL . "include/SelectorPopup.css\" rel=\"stylesheet\">\n";
   print "  <script src=\"" . CCPLUSROOTURL . "include/SelectorPopup.js\" rel=\"stylesheet\"></script>\n";
   print "  <script src=\"" . CCPLUSROOTURL . "include/Report_Home.js\"></script>\n";
-
-  // Build a simple summary of alerts with links to the counts for each
-  // alert status (if session indicates user wants to see them).
-  //
-  if (isset($_SESSION['statdash_alerts'])) {
-    $message = "  <p align='left'>&nbsp; &nbsp;";
-    if ( $alert_counts['Total'] == 0 ) {
-      print "<div id=\"InfoAlerts\" style=\"width:80%;background-color:#00FF00\">\n";
-      $message .= "No alerts are currently set</p>\n";
-    } else {
-      print "<div id=\"InfoAlerts\" style=\"width:80%;background-color:#FFFF00\">\n";
-      $message .= ($alert_counts['Total'] == 1) ? "There is " : "There are ";
-      $message .= "currently &nbsp; <a href='/alerts_dash.php?status=ALL'>" . $alert_counts['Total'];
-      $message .= " statistics alerts set </a> &nbsp; : ";
-      foreach ( $alert_status as $_stat ) {
-        if ( $alert_counts[$_stat] == 0 ) { continue; }
-        $message .= " &nbsp; &nbsp; <a href='/alerts_dash.php?status=" . $_stat . "'>";
-        $message .= $alert_counts[$_stat];
-        $message .= ($alert_counts[$_stat] == 1) ? " is " : " are " ;
-        $message .= ($_stat == "Delete") ? "marked for Deletion" : $_stat;
-        $message .= "</a> &nbsp; &nbsp; ,";
-      }
-      $message = preg_replace('/,$/',"",$message);                // zap trailing comma
-      $message .= "    </p>\n";
-    }
-    print $message;
-    print "</div>\n";
-  }
 ?>
 <?php
   // Setup Form and hidden variables
@@ -162,6 +134,30 @@ if ( $_DEST == "HTML" ) {
   //
 ?>
   <table width="85%" class="centered">
+<?php
+  // If there are ACTIVE alerts, print a summary row to the table with with links to
+  // the counts for each alert status.
+  //
+  if ( $_RUNIT && $alert_counts['Active'] > 0 ) {
+    // print "<div id=\"InfoAlerts\" style=\"width:80%;background-color:#FFFF00\" align=\"center\">\n  Warning! - ";
+    print "    <tr style=\"background-color:#FFFF00\">\n";
+    print "      <td colspan=\"6\">Warning! - ";
+    $alert_sum = ($alert_counts['Total'] == 1) ? "There is " : "There are ";
+    $alert_sum .= " <a href='" . CCPLUSROOTURL . "AlertsDash.php?Astat=ALL'>" . $alert_counts['Total'];
+    $alert_sum .= ($alert_counts['Total'] == 1) ? " alert" : "alerts";
+    $alert_sum .= " set for data in this report </a> &nbsp; : ";
+    foreach ( $alert_status as $_stat ) {
+      if ( $alert_counts[$_stat] == 0 ) { continue; }
+      $alert_sum .= " &nbsp; &nbsp; <a href='" . CCPLUSROOTURL . "AlertsDash.php?Astat=" . $_stat . "'>";
+      $alert_sum .= $alert_counts[$_stat];
+      $alert_sum .= ($alert_counts[$_stat] == 1) ? " is " : " are " ;
+      $alert_sum .= ($_stat == "Delete") ? "marked for Deletion" : $_stat;
+      $alert_sum .= "</a> &nbsp; &nbsp; ,";
+    }
+    $alert_sum = preg_replace('/,$/',"",$alert_sum);                // zap trailing comma
+    print $alert_sum . "\n</td>\n    </tr>\n";
+  }
+?>
     <tr>
       <td width="20%" align="left"><label for="FromYM"><h4>Report usage from:</h4></label></td>
       <td width="2%" >&nbsp;</td>
@@ -483,6 +479,14 @@ if ( $_RUNIT ) {
         $limits .= $_prov['name'];
       }
       if ( $limits != "" ) { $rpt_info .= "Limited By: " . $limits . "\n"; }
+    }
+
+    // If there are ACTIVE alerts, print a summary row to the table with with links to
+    // the counts for each alert status.
+    //
+    if ( $alert_counts['Active'] > 0 ) {
+      $rpt_info .= "Warning! - At least one active alert is set for data in this report -";
+      $rpt_info .= " details are here: " . CCPLUSROOTURL . "AlertsDash.php?Astat=ALL\n\n";
     }
 
     // Setup header(s)

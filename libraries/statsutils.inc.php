@@ -1009,7 +1009,7 @@ if (!function_exists("ccp_get_ingest_record")) {
     if ( $where != " WHERE " ) { $_qry .= $where; }
     $_qry .= " ORDER BY IR.timestamp ASC";
 
-    $alerts=array();
+    $records=array();
     try {
       $_result = $ccp_usr_cnx->query($_qry);
       while ( $row = $_result->fetch(PDO::FETCH_ASSOC) ) {

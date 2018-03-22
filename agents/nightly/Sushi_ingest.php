@@ -123,7 +123,8 @@ foreach ( $consortia as $_Con ) {
   $_db = "ccplus_" . $_Con['ccp_key'];
   $ccp_usr_cnx = ccp_open_db($_db, "User", 1);
   $ccp_adm_cnx = ccp_open_db($_db, "Admin", 1);
-  $logmsg = false;
+  // If this is a retry, suppress extra log message
+  $logmsg = ($retryID != 0) ? true : false;
 
   // Setup the $providers array to hold ID's to process
   //

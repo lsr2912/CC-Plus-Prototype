@@ -616,7 +616,8 @@ if (!function_exists("ccp_get_alert_settings")) {
     try {
       $_result = $ccp_usr_cnx->query($_qry);
       while ( $row = $_result->fetch(PDO::FETCH_ASSOC) ) {
-        array_push($alerts,$row);
+        $alerts[$row['ID']] = $row;
+        // array_push($alerts,$row);
       }
     } catch (PDOException $e) {
       echo $e->getMessage();
@@ -634,9 +635,12 @@ if (!function_exists("ccp_get_alert_settings")) {
 //   $_stat : limit the return-set based on alert status (default:Active)
 //            Can also be "ALL" for no limiter
 //   $_prov : limit the return-set based on provider ID (default:all)
+//   $_rept : limit the return-set based on report-name (default:all)
+//   $_from : Start of date range as YYYY-MM (0=last-month)
+//   $_to   : End of date range as YYYY-MM (0=last-month)
 //
 if (!function_exists("ccp_get_alerts")) {
-  function ccp_get_alerts( $_stat="Active", $_prov=0 ) {
+  function ccp_get_alerts( $_stat="Active", $_prov=0, $_rept="", $_from="", $_to="" ) {
 
     // Setup database connection
     //
@@ -646,13 +650,15 @@ if (!function_exists("ccp_get_alerts")) {
     // Setup the query
     //
     $_qry  = "SELECT Al.*, Met.legend, Pr.name AS prov_name,";
-    $_qry .= " CONCAT(Usr.first_name, ' ', Usr.last_name) AS user_name, Rpt.Report_Name,";
+    $_qry .= "CONCAT(Usr.first_name, ' ', Usr.last_name) AS user_name, FI.detail,";
+    $_qry .= "(CASE Al.failed_id WHEN 0 THEN Rpt.Report_Name ELSE FI.report_name END) as Report_Name,";
     $_qry .= " DATE_FORMAT(Al.time_stamp,'%Y-%m-%d') as ts_date FROM alerts AS Al";
     $_qry .= " LEFT JOIN alert_settings AS Ast ON Al.settings_id=Ast.ID";
     $_qry .= " LEFT JOIN ccplus_global.Metrics AS Met ON Ast.metric_xref=Met.ID";
     $_qry .= " LEFT JOIN ccplus_global.Reports AS Rpt ON Met.rept_id=Rpt.ID";
     $_qry .= " LEFT JOIN provider AS Pr ON Al.prov_id=Pr.prov_id";
     $_qry .= " LEFT JOIN users AS Usr ON Al.modified_by=Usr.user_id";
+    $_qry .= " LEFT JOIN failed_ingest as FI ON Al.failed_id=FI.ID";
 
     // Setup where clause
     //
@@ -661,6 +667,16 @@ if (!function_exists("ccp_get_alerts")) {
     if ( $_prov!=0 ) {
       $_where .= ( $_where == "" ) ? "" : " AND ";
       $_where .= "Al.prov_id=" . $_prov;
+    }
+    if ( $_rept!="" ) {
+      $_where .= ( $_where == "" ) ? "" : " AND ";
+      $_where .= "Rpt.Report_Name='" . $_rept . "'";
+    }
+    if ($_from!="" && $_to!="") {
+      $_where .= ( $_where == "" ) ? "" : " AND ";
+      $_where .= "STR_TO_DATE(Al.yearmon,'%Y-%m') BETWEEN ";
+      $_where .= "STR_TO_DATE('" . $_from . "','%Y-%m') AND ";
+      $_where .= "STR_TO_DATE('" . $_to . "','%Y-%m')";
     }
 
     // Execute query, prepare results

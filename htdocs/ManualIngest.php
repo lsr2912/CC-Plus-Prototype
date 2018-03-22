@@ -427,13 +427,14 @@ if ( $ERR == 0 ) {
       // Display a link to the Raw XML
       //
       $_url = $TempURLPath . substr($xml_file,strpos($xml_file,'/XML')+1);
-?>
- <p align="center"><font face='+1'>
-   The Raw XML data has been downloaded to a temporary folder.<br />
-   CC-Plus will move it to the appropriate folder within 10 minutes.<br />
-   <a href="<?php echo $_url; ?>" target="_blank">Click here to view the RAW XML now</a>.
- </font></p>
-<?php
+      print " <p align=\"center\"><font face=\"+1\">\n";
+      print "   The Raw XML data has been downloaded to a temporary folder.<br />\n";
+      if ( $_POST['IngestOP']=="CCP" || $_POST['IngestOP']=="ALL" ) {
+        print "   CC-Plus will move it to the appropriate folder within 10 minutes.<br />\n";
+      }
+      print "   <a href=\"" . $_url . "\" target=\"_blank\">Click here to view the RAW XML now</a>.\n";
+      print " </font></p>\n";
+
       // Parse the XML and and save the report as a CSV in a temp-file
       //
       $parse_status = "";
@@ -459,11 +460,14 @@ if ( $ERR == 0 ) {
         if ( $_POST['IngestOP']=="CSV" || $_POST['IngestOP']=="ALL" ) {
 
           $_url = $TempURLPath . substr($counter_file,strpos($counter_file,'/CSV')+1);
+          print " <p align=\"center\"><font face=\"+1\">\n";
+          print "   The report has been processed and formatted as a COUNTER CSV,";
+          print " and currently resides in a temporary folder.<br />\n";
+          if ( $_POST['IngestOP']=="ALL" ) {
+            print "   CC-Plus will move it to the appropriate folder within 10 minutes.<br />\n";
+          }
+          print "   <a href=\"" . $_url . "\">Click here to download the report as a COUNTER CSV</a>.\n";
 ?>
- <p align="center"><font face='+1'>
-   The report has been processed and formatted as a COUNTER CSV, and currently resides in a
-   temporary folder.<br /> CC-Plus will move it to the appropriate folder within 10 minutes.<br />
-   <a href="<?php echo $_url; ?>">Click here to download the report as a COUNTER CSV</a>.
  </font></p>
  <p align="center"><br /><font face='+1'><strong>
 <?php

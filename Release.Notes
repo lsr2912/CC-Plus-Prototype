@@ -1,3 +1,21 @@
+Update : 3/22/2018
+  * agents/nightly::CCP_nightly.sh and agents/nightly::Mail_Alerts.php
+    - Scripted support for nightly mailing of active alerts
+  * agents/nightly::Update_Alerts.php
+    - global database handle variable declarations were missing
+  * htdocs::ManualIngest.php
+    - Successful completion messaging changed when not "saving" into database
+  * htdocs::AlertsDash.php and htdocs/include::Alert_Dash.js
+    - added report name column to output, including detail for failed ingests
+  * htdocs::ReportHome.php
+    - reports now display a warning message with links if alerts exist for the
+      date-range/provider/report being displayed
+  * libraries::dbutils.inc.php
+    - changes to support alert processing and diplay in reports
+  * libraries::statsutils.inc.php
+    - return array declaration had wrong name
+  * libraries::footer.inc.html.php
+    - updated release datestamp
 Update : 3/12/2018
   * agents/nightly::Sushi_ingest.php
     - Argument check for consortium ID (for running via CLI)
@@ -26,7 +44,7 @@ Update : 3/12/2018
     - Ingest_Log.js : timestamp was not being added to row on page-rebuild from .js
   * libraries::counter4_processors.php
     - remove metric_xref from *_Report_Data table insert(s)
-  * libraries::dbutils.php
+  * libraries::dbutils.inc.php
     - remove unused function (ccp_get_metric)
     - updates to support setting and retrieval of alerts
   * libraries::statsutils.inc.php
