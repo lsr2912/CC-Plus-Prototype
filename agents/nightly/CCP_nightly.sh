@@ -22,7 +22,7 @@ php ./Update_Alerts.php
 #
 # Send email notices
 #
-php ./Mail_CCP_Alerts.php
+php ./Mail_Alerts.php
 #
 # Clean up any old temporary data or files
 #

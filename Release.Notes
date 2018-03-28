@@ -1,3 +1,11 @@
+Update : 3/27/2018
+  * agents/nightly::CCP_nightly.sh
+    - (typo) was calling alert mailer script incorrectly
+  * agents/nightly::Sushi_ingest.php
+    - failed_ingest logging call had wrong values for reportID and name
+  * libraries::counter4_parsers.php
+    - New (hopefully more durable and generic) namespace handling for XML
+  * libraries::footer.inc.html.php - updated release datestamp
 Update : 3/22/2018
   * agents/nightly::CCP_nightly.sh and agents/nightly::Mail_Alerts.php
     - Scripted support for nightly mailing of active alerts

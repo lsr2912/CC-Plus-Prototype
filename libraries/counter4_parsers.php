@@ -32,8 +32,8 @@ if (!function_exists("parse_counter_JR1v4")) {
     // Setup error handling for opening the file
     //
     $use_errors = libxml_use_internal_errors(true);
-    $r = simplexml_load_file( $in_xml );
-    if ( $r === FALSE ) {
+    $raw = simplexml_load_file( $in_xml );
+    if ( $raw === FALSE ) {
       return "Failed loading XML";
     }
     libxml_clear_errors();
@@ -51,21 +51,36 @@ if (!function_exists("parse_counter_JR1v4")) {
     $OUTFIL = FALSE;
     if ( $out_csv != "" ) { $OUTFIL = TRUE; }
 
-    // Check namespaces present and get the counter report XML w/
-    // children into $r. If the 'sc' namespace exists, we're ASSUMING
-    // that the XML holds an extra "Report" bounding tag.
+    // Find and register the sushi-counter namespace(s).
+    // If not found, bail with an error.
     //
+    $have_c = FALSE;
+    $have_sc = FALSE;
     $customers = array();
-    $namespaces = $r->getNamespaces(true);
-    if ( isset( $namespaces['sc']) ) {
-      $rpt = $r->children('sc',true)->Report->children('c',true)->Report;
-      $customers = $rpt->Customer;
+    $namespaces = $raw->getNamespaces(true);
+    foreach ( $namespaces as $_key=>$_value ) {
+      if ( $_value == "http://www.niso.org/schemas/sushi/counter") {
+        $raw->registerXPathNamespace('sc', $_value);
+        $have_sc = TRUE;
+      }
+      if ( $_value == "http://www.niso.org/schemas/counter") {
+        $raw->registerXPathNamespace('c', 'http://www.niso.org/schemas/counter');
+        $have_c = TRUE;
+      }
+    }
+    if ( !$have_c && !$have_sc ) {
+      return "Missing SUSHI-Counter namespace in document!?";
+    }
 
-    // Otherwise, add the counter namespace
+    // Map the Customer section of the report to an array
     //
-    } else {
-      $r->registerXPathNamespace('c', 'http://www.niso.org/schemas/counter');
-      $customers = $r->xpath('//c:Customer');
+    if ( $have_c ) { $customers = $raw->xpath('//c:Customer'); }
+    if ( (count($customers) == 0) && $have_sc ) {
+      $sc_repo = $raw->xpath('//sc:Report');
+      $customers = $sc_repo[0]->Report->Customer;
+    }
+    if ( count($customers) == 0 ) {
+      return "Cannot find any Customer data in the XML!";
     }
 
     // Run a first-pass through the report to sum totals
@@ -219,8 +234,8 @@ if (!function_exists("parse_counter_JR2v4")) {
     // Setup error handling for opening the file
     //
     $use_errors = libxml_use_internal_errors(true);
-    $r = simplexml_load_file( $in_xml );
-    if ( $r === FALSE ) {
+    $raw = simplexml_load_file( $in_xml );
+    if ( $raw === FALSE ) {
       return "Failed loading XML";
     }
     libxml_clear_errors();
@@ -238,21 +253,36 @@ if (!function_exists("parse_counter_JR2v4")) {
     $OUTFIL = FALSE;
     if ( $out_csv != "" ) { $OUTFIL = TRUE; }
 
-    // Check namespaces present and get the counter report XML w/
-    // children into $r. If the 'sc' namespace exists, we're ASSUMING
-    // that the XML holds an extra "Report" bounding tag.
+    // Find and register the sushi-counter namespace(s).
+    // If not found, bail with an error.
     //
+    $have_c = FALSE;
+    $have_sc = FALSE;
     $customers = array();
-    $namespaces = $r->getNamespaces(true);
-    if ( isset( $namespaces['sc']) ) {
-      $rpt = $r->children('sc',true)->Report->children('c',true)->Report;
-      $customers = $rpt->Customer;
+    $namespaces = $raw->getNamespaces(true);
+    foreach ( $namespaces as $_key=>$_value ) {
+      if ( $_value == "http://www.niso.org/schemas/sushi/counter") {
+        $raw->registerXPathNamespace('sc', $_value);
+        $have_sc = TRUE;
+      }
+      if ( $_value == "http://www.niso.org/schemas/counter") {
+        $raw->registerXPathNamespace('c', 'http://www.niso.org/schemas/counter');
+        $have_c = TRUE;
+      }
+    }
+    if ( !$have_c && !$have_sc ) {
+      return "Missing SUSHI-Counter namespace in document!?";
+    }
 
-    // Otherwise, add the counter namespace
+    // Map the Customer section of the report to an array
     //
-    } else {
-      $r->registerXPathNamespace('c', 'http://www.niso.org/schemas/counter');
-      $customers = $r->xpath('//c:Customer');
+    if ( $have_c ) { $customers = $raw->xpath('//c:Customer'); }
+    if ( (count($customers) == 0) && $have_sc ) {
+      $sc_repo = $raw->xpath('//sc:Report');
+      $customers = $sc_repo[0]->Report->Customer;
+    }
+    if ( count($customers) == 0 ) {
+      return "Cannot find any Customer data in the XML!";
     }
 
     // Loop over all customers in the file
@@ -425,8 +455,8 @@ if (!function_exists("parse_counter_JR5v4")) {
     // Setup error handling for opening the file
     //
     $use_errors = libxml_use_internal_errors(true);
-    $r = simplexml_load_file( $in_xml );
-    if ( $r === FALSE ) {
+    $raw = simplexml_load_file( $in_xml );
+    if ( $raw === FALSE ) {
       return "Failed loading XML";
     }
     libxml_clear_errors();
@@ -448,21 +478,36 @@ if (!function_exists("parse_counter_JR5v4")) {
       $csv_out = fopen ($out_csv, 'w');
     }
 
-    // Check namespaces present and get the counter report XML w/
-    // children into $r. If the 'sc' namespace exists, we're ASSUMING
-    // that the XML holds an extra "Report" bounding tag.
+    // Find and register the sushi-counter namespace(s).
+    // If not found, bail with an error.
     //
+    $have_c = FALSE;
+    $have_sc = FALSE;
     $customers = array();
-    $namespaces = $r->getNamespaces(true);
-    if ( isset( $namespaces['sc']) ) {
-      $rpt = $r->children('sc',true)->Report->children('c',true)->Report;
-      $customers = $rpt->Customer;
-
-    // Otherwise, add the counter namespace
+    $namespaces = $raw->getNamespaces(true);
+    foreach ( $namespaces as $_key=>$_value ) {
+      if ( $_value == "http://www.niso.org/schemas/sushi/counter") {
+        $raw->registerXPathNamespace('sc', $_value);
+        $have_sc = TRUE;
+      }
+      if ( $_value == "http://www.niso.org/schemas/counter") {
+        $raw->registerXPathNamespace('c', 'http://www.niso.org/schemas/counter');
+        $have_c = TRUE;
+      }
+    }
+    if ( !$have_c && !$have_sc ) {
+      return "Missing SUSHI-Counter namespace in document!?";
+    }
+    
+    // Map the Customer section of the report to an array
     //
-    } else {
-      $r->registerXPathNamespace('c', 'http://www.niso.org/schemas/counter');
-      $customers = $r->xpath('//c:Customer');
+    if ( $have_c ) { $customers = $raw->xpath('//c:Customer'); }
+    if ( (count($customers) == 0) && $have_sc ) {
+      $sc_repo = $raw->xpath('//sc:Report');
+      $customers = $sc_repo[0]->Report->Customer;
+    }
+    if ( count($customers) == 0 ) {
+      return "Cannot find any Customer data in the XML!";
     }
 
     // Run a first-pass through the report to build an array of Year-of-Publication

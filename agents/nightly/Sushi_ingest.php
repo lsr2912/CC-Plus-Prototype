@@ -239,7 +239,7 @@ foreach ( $consortia as $_Con ) {
         }
         if ($status != "Success") {
           fwrite(STDOUT, $status."\n");
-          ccp_log_failed_ingest($_PROV, $_INST, $_settings['ID'], 0, $_Rpt['ID'], $yearmon, "CSV", $status, $retryID);
+          ccp_log_failed_ingest($_PROV,$_INST,$_settings['ID'],$_Rpt['ID'],$_Rpt['Report_Name'],$yearmon,"CSV",$status,$retryID);
           continue;
         }
 
