@@ -55,7 +55,7 @@ $ingest_settings = ccp_get_sushi_settings( $_INST, $_PROV );
 if ( count($ingest_settings) > 0 ) { 
   $return = $ingest_settings[0];
 } else {
-  $return = array ("error"=>1 , "message"=>$ERROR);
+  $return = array ("error"=>1 , "message"=>"No settings currently defined.");
 }
 
 // Build and return JSON

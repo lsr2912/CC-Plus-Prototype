@@ -52,7 +52,7 @@ if ($ERR == 0) {
 
     // Setup the query and initial arguments
     //
-    $_args = array($_status,$_SESSION['ccp_user_id']);
+    $_args = array($_status,$_SESSION['ccp_uid']);
     $_qry  = "UPDATE alerts SET status=? , modified_by=? WHERE ID IN (";
 
     // Loop through all POST inputs. Any status dropdowns matching the current
@@ -106,7 +106,9 @@ if ($ERR == 1) {
 //
 } else {
   print_page_header("CC-Plus Alert Settings Updated");
-  header( "refresh:3;url=AlertsDash.php" );
+  $redir_url = "AlertsDash.php";
+  $_place = "the Alerts Dashboard";
+  header( "refresh:3;url=" . $redir_url );
 ?>
  <table cellpadding="3" cellspacing="3" border="0">
     <tr><td width="100"></td>

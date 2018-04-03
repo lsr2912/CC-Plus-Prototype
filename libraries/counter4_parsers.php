@@ -26,6 +26,7 @@
 // Returns:
 //  $status : a string containing an error, or the string "Success"
 //--------------------------------------------------------------------------------------
+require('simplexml_dump.php');
 if (!function_exists("parse_counter_JR1v4")) {
   function parse_counter_JR1v4 ($in_xml, $out_csv="", $begin, $end ) {
 
@@ -51,34 +52,34 @@ if (!function_exists("parse_counter_JR1v4")) {
     $OUTFIL = FALSE;
     if ( $out_csv != "" ) { $OUTFIL = TRUE; }
 
-    // Find and register the sushi-counter namespace(s).
-    // If not found, bail with an error.
+    // Find and register the counter and sushi-counter namespace(s).
+    // If neither is found, bail with an error.
     //
     $have_c = FALSE;
+    $C_prefix = "";
     $have_sc = FALSE;
     $customers = array();
     $namespaces = $raw->getNamespaces(true);
     foreach ( $namespaces as $_key=>$_value ) {
-      if ( $_value == "http://www.niso.org/schemas/sushi/counter") {
-        $raw->registerXPathNamespace('sc', $_value);
-        $have_sc = TRUE;
-      }
       if ( $_value == "http://www.niso.org/schemas/counter") {
-        $raw->registerXPathNamespace('c', 'http://www.niso.org/schemas/counter');
+        $raw->registerXPathNamespace($_key, "http://www.niso.org/schemas/counter");
+        $C_prefix = $_key;
         $have_c = TRUE;
       }
+      if ( $_value == "http://www.niso.org/schemas/sushi/counter") { $have_sc = TRUE; }
     }
     if ( !$have_c && !$have_sc ) {
       return "Missing SUSHI-Counter namespace in document!?";
     }
+    if ( $C_prefix == "" ) {
+      $raw->registerXPathNamespace('C', "http://www.niso.org/schemas/counter");
+      $C_prefix="C";
+    }
 
     // Map the Customer section of the report to an array
     //
-    if ( $have_c ) { $customers = $raw->xpath('//c:Customer'); }
-    if ( (count($customers) == 0) && $have_sc ) {
-      $sc_repo = $raw->xpath('//sc:Report');
-      $customers = $sc_repo[0]->Report->Customer;
-    }
+    $_path = "//" . $C_prefix;
+    $customers = $raw->xpath($_path . ":Customer");
     if ( count($customers) == 0 ) {
       return "Cannot find any Customer data in the XML!";
     }
@@ -90,9 +91,19 @@ if (!function_exists("parse_counter_JR1v4")) {
       $total_html = 0;
       $grand_ttl = 0;
       $monthly_total = array();
-      foreach ($cust->ReportItems as $item) {
-        foreach ($item->ItemPerformance as $perf) {
 
+      // Strip out any/all namespace references within $cust
+      //
+      $cust_xml = preg_replace('/(<\/*)[^>:]+:/', '$1', $cust->asXML());
+      $stripped_cust = simplexml_load_string( $cust_xml );
+      if ( count($stripped_cust->ReportItems) == 0 ) {
+        return "Cannot find any ReportItems in the XML!";
+      }
+
+      // Loop through the ReportItems
+      //
+      foreach ($stripped_cust->ReportItems as $item) {
+        foreach ($item->ItemPerformance as $perf) {
           foreach ( $period as $_dt ) {
             $_begin = $_dt->format('Y-m-01');
             $_end = $_dt->format('Y-m-t');
@@ -144,7 +155,7 @@ if (!function_exists("parse_counter_JR1v4")) {
   
       // Parse out the document by sections to get down to the metrics
       //
-      foreach ($cust->ReportItems as $item) {
+      foreach ($stripped_cust->ReportItems as $item) {
 
         if ( $OUTFIL ) {
 
@@ -253,34 +264,34 @@ if (!function_exists("parse_counter_JR2v4")) {
     $OUTFIL = FALSE;
     if ( $out_csv != "" ) { $OUTFIL = TRUE; }
 
-    // Find and register the sushi-counter namespace(s).
-    // If not found, bail with an error.
+    // Find and register the counter and sushi-counter namespace(s).
+    // If neither is found, bail with an error.
     //
     $have_c = FALSE;
+    $C_prefix = "";
     $have_sc = FALSE;
     $customers = array();
     $namespaces = $raw->getNamespaces(true);
     foreach ( $namespaces as $_key=>$_value ) {
-      if ( $_value == "http://www.niso.org/schemas/sushi/counter") {
-        $raw->registerXPathNamespace('sc', $_value);
-        $have_sc = TRUE;
-      }
       if ( $_value == "http://www.niso.org/schemas/counter") {
-        $raw->registerXPathNamespace('c', 'http://www.niso.org/schemas/counter');
+        $raw->registerXPathNamespace($_key, "http://www.niso.org/schemas/counter");
+        $C_prefix = $_key;
         $have_c = TRUE;
       }
+      if ( $_value == "http://www.niso.org/schemas/sushi/counter") { $have_sc = TRUE; }
     }
     if ( !$have_c && !$have_sc ) {
       return "Missing SUSHI-Counter namespace in document!?";
     }
+    if ( $C_prefix == "" ) {
+      $raw->registerXPathNamespace('C', "http://www.niso.org/schemas/counter");
+      $C_prefix="C";
+    }
 
     // Map the Customer section of the report to an array
     //
-    if ( $have_c ) { $customers = $raw->xpath('//c:Customer'); }
-    if ( (count($customers) == 0) && $have_sc ) {
-      $sc_repo = $raw->xpath('//sc:Report');
-      $customers = $sc_repo[0]->Report->Customer;
-    }
+    $_path = "//" . $C_prefix;
+    $customers = $raw->xpath($_path . ":Customer");
     if ( count($customers) == 0 ) {
       return "Cannot find any Customer data in the XML!";
     }
@@ -295,7 +306,18 @@ if (!function_exists("parse_counter_JR2v4")) {
       $RP_Total_NL = 0;
       $monthly_TA = array();
       $monthly_NL = array();
-      foreach ($cust->ReportItems as $item) {
+
+      // Strip out any/all namespace references within $cust
+      //
+      $cust_xml = preg_replace('/(<\/*)[^>:]+:/', '$1', $cust->asXML());
+      $stripped_cust = simplexml_load_string( $cust_xml );
+      if ( count($stripped_cust->ReportItems) == 0 ) {
+        return "Cannot find any ReportItems in the XML!";
+      }
+
+      // Loop through the ReportItems
+      //
+      foreach ($stripped_cust->ReportItems as $item) {
         foreach ( $period as $_dt ) {
           $_begin = $_dt->format('Y-m-01');
           $_end = $_dt->format('Y-m-t');
@@ -356,7 +378,7 @@ if (!function_exists("parse_counter_JR2v4")) {
 
       // Parse out the document by sections to get down to the metrics
       //
-      foreach ($cust->ReportItems as $item) {
+      foreach ($stripped_cust->ReportItems as $item) {
 
         if ( $OUTFIL ) {
 
@@ -478,34 +500,34 @@ if (!function_exists("parse_counter_JR5v4")) {
       $csv_out = fopen ($out_csv, 'w');
     }
 
-    // Find and register the sushi-counter namespace(s).
-    // If not found, bail with an error.
+    // Find and register the counter and sushi-counter namespace(s).
+    // If neither is found, bail with an error.
     //
     $have_c = FALSE;
+    $C_prefix = "";
     $have_sc = FALSE;
     $customers = array();
     $namespaces = $raw->getNamespaces(true);
     foreach ( $namespaces as $_key=>$_value ) {
-      if ( $_value == "http://www.niso.org/schemas/sushi/counter") {
-        $raw->registerXPathNamespace('sc', $_value);
-        $have_sc = TRUE;
-      }
       if ( $_value == "http://www.niso.org/schemas/counter") {
-        $raw->registerXPathNamespace('c', 'http://www.niso.org/schemas/counter');
+        $raw->registerXPathNamespace($_key, "http://www.niso.org/schemas/counter");
+        $C_prefix = $_key;
         $have_c = TRUE;
       }
+      if ( $_value == "http://www.niso.org/schemas/sushi/counter") { $have_sc = TRUE; }
     }
     if ( !$have_c && !$have_sc ) {
       return "Missing SUSHI-Counter namespace in document!?";
     }
-    
+    if ( $C_prefix == "" ) {
+      $raw->registerXPathNamespace('C', "http://www.niso.org/schemas/counter");
+      $C_prefix="C";
+    }
+
     // Map the Customer section of the report to an array
     //
-    if ( $have_c ) { $customers = $raw->xpath('//c:Customer'); }
-    if ( (count($customers) == 0) && $have_sc ) {
-      $sc_repo = $raw->xpath('//sc:Report');
-      $customers = $sc_repo[0]->Report->Customer;
-    }
+    $_path = "//" . $C_prefix;
+    $customers = $raw->xpath($_path . ":Customer");
     if ( count($customers) == 0 ) {
       return "Cannot find any Customer data in the XML!";
     }
@@ -519,7 +541,18 @@ if (!function_exists("parse_counter_JR5v4")) {
       $YOPS = array();
       $YOP_ranges = array();
       $yop_totals = array();
-      foreach ($cust->ReportItems as $item) {
+
+      // Strip out any/all namespace references within $cust
+      //
+      $cust_xml = preg_replace('/(<\/*)[^>:]+:/', '$1', $cust->asXML());
+      $stripped_cust = simplexml_load_string( $cust_xml );
+      if ( count($stripped_cust->ReportItems) == 0 ) {
+        return "Cannot find any ReportItems in the XML!";
+      }
+
+      // Loop through the ReportItems
+      //
+      foreach ($stripped_cust->ReportItems as $item) {
         foreach ($item->ItemPerformance as $perf) {
 
           // Get Pub-Year or range and add to its array if not already there.
@@ -547,7 +580,7 @@ if (!function_exists("parse_counter_JR5v4")) {
           }
         }       // for all ItemPerformance
       }         // for all report-items
-    
+
       // Sort YOPS, tack on ranges and "Unknown" to end if they're set
       //
       rsort($YOPS);
@@ -588,7 +621,7 @@ if (!function_exists("parse_counter_JR5v4")) {
       // report records into ouput CSV rows
       //
       $yop_counts = array();
-      foreach ($cust->ReportItems as $item) {
+      foreach ($stripped_cust->ReportItems as $item) {
 
         if ( $OUTFIL ) {
           // Set identifiers
@@ -631,7 +664,7 @@ if (!function_exists("parse_counter_JR5v4")) {
           $_begin = $_dt->format('Y-m-01');
           $_end = $_dt->format('Y-m-t');
           foreach ($item->ItemPerformance as $perf) {
-            $_yop = ccp_get_yop($perf);	// funcion in this file, below
+            $_yop = ccp_get_yop($perf);	// function in this file, below
             if ( $perf->Period->Begin == $_begin  &&  $perf->Period->End == $_end ) {
               foreach ($perf->Instance as $inst) {
                 if ( $inst->MetricType == "ft_total" ) {
@@ -655,27 +688,34 @@ if (!function_exists("parse_counter_JR5v4")) {
   }
 }
 
-//
 // Function to return a Year-of-Publication string for an ItemPerformance record
-// Pub-Year values that are <2000 or in the future (>current_year)
-// will return "Unknown".
+// Pub-Yr values can go back as far as 2 decades ago. Any PubYr (or PubYrFrom/PubYrTo)
+// values older than that get re-mapped into "Pre-"+"<2 decades ago>".
+// Any PubYr in the future or less than 1000 returns "Unknown".
 //
 function ccp_get_yop($perf) {
+
+  $MinYr = substr( date("Y",strtotime('-10 years') ), 0, 3) . "0";
+
   if ( isset($perf['PubYr']) ) {
+
     $_yop = (string) $perf['PubYr'];
-    if ( $_yop == "9999" ) {
-      return "Articles in Press";
-    } else {
-      if ( $_yop<2000 || $_yop>date("Y") ) { return "Unknown"; }
-    }
+
+    if ( $_yop == "9999" ) { return "Articles in Press"; }
+    if ( $_yop>date("Y") || $_yop<1000 ) { return "Unknown"; }
+    if ( $_yop<$MinYr ) { $_yop = "Pre-" . $MinYr; }
+
+    return $_yop;
+
   } else if ( isset($perf['PubYrTo']) ) {
     $_to = (string) $perf['PubYrTo'];
+    if ( ($_to+1) < $MinYr ) { $_to = $MinYr - 1; }
     $_from = "Pre";
     if ( isset($perf['PubYrFrom']) ) {
       $_val = (string) $perf['PubYrFrom'];
-      if ( $_val>=2000 && $_val<=date("Y") ) { $_from = $_val; }
+      if ( $_val>=$MinYr && $_val<=date("Y") ) { $_from = $_val; }
     }
-    $_yop = $_from . "-" . ($_to +1);
+    $_yop = $_from . "-" . ($_to+1);
   }
   return $_yop;
 }
