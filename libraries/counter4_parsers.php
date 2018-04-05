@@ -26,7 +26,6 @@
 // Returns:
 //  $status : a string containing an error, or the string "Success"
 //--------------------------------------------------------------------------------------
-require('simplexml_dump.php');
 if (!function_exists("parse_counter_JR1v4")) {
   function parse_counter_JR1v4 ($in_xml, $out_csv="", $begin, $end ) {
 
@@ -166,6 +165,7 @@ if (!function_exists("parse_counter_JR1v4")) {
           $_online_issn = "";
           $_journal_doi = "";
           foreach ( $item->ItemIdentifier as $_id ) {
+            if ( $_id->Value == "String" ) { continue; }	// Proquest is why
             if ( $_id->Type == "Proprietary" ) { $_prop_id = $_id->Value; }
             if ( $_id->Type == "Print_ISSN" ) { $_print_issn = $_id->Value; }
             if ( $_id->Type == "Online_ISSN" ) { $_online_issn = $_id->Value; }
@@ -389,6 +389,7 @@ if (!function_exists("parse_counter_JR2v4")) {
           $_online_issn = "";
           $_journal_doi = "";
           foreach ( $item->ItemIdentifier as $_id ) {
+            if ( $_id->Value == "String" ) { continue; }	// Proquest is why
             if ( $_id->Type == "Proprietary" ) { $_prop_id = $_id->Value; }
             if ( $_id->Type == "Print_ISSN" ) { $_print_issn = $_id->Value; }
             if ( $_id->Type == "Online_ISSN" ) { $_online_issn = $_id->Value; }
@@ -631,6 +632,7 @@ if (!function_exists("parse_counter_JR5v4")) {
           $_online_issn = "";
           $_journal_doi = "";
           foreach ( $item->ItemIdentifier as $_id ) {
+            if ( $_id->Value == "String" ) { continue; }	// Proquest is why
             if ( $_id->Type == "Proprietary" ) { $_prop_id = $_id->Value; }
             if ( $_id->Type == "Print_ISSN" ) { $_print_issn = $_id->Value; }
             if ( $_id->Type == "Online_ISSN" ) { $_online_issn = $_id->Value; }

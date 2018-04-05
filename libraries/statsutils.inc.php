@@ -130,23 +130,33 @@ if (!function_exists("ccp_failed_ingests")) {
 
 // Log a stats ingest attempt
 //
+// Arguments:
+//   $prov_id   : provider ID
+//   $inst_id   : institution ID
+//   $report_id : report ID
+//   $yearmon   : Year-Month of the requested report
+//   $status    : "Saved" or "Failed"
+//   $_DB       : Database (name) to be checked
+//
 if (!function_exists("ccp_record_ingest")) {
-  function ccp_record_ingest( $prov_id=0 , $inst_id=0, $report_id, $yearmon, $status ) {
+  function ccp_record_ingest( $prov_id=0 , $inst_id=0, $report_id, $yearmon, $status, $_DB="" ) {
 
-    // Connect to database as admin
+    // Connect to database as admin; force a new handle to avoid
+    // colliding/changing globals used by caller.
     //
-    global $ccp_adm_cnx;
-    if ( !$ccp_adm_cnx ) { $ccp_adm_cnx = ccp_open_db("","Admin"); }
+    if ( $_DB == "" ) { $_DB = "ccplus_" . $_SESSION['ccp_con_key']; }
+    $adm_cnx = ccp_open_db($_DB, "Admin", 1);
 
     // Execute the query to add the record
     //
     $_qry  = "INSERT INTO ingest_record (inst_id,prov_id,report_xref,yearmon,status) VALUES (?,?,?,?,?)";
     try {
-      $sth = $ccp_adm_cnx->prepare($_qry);
+      $sth = $adm_cnx->prepare($_qry);
       $sth->execute(array($inst_id, $prov_id, $report_id, $yearmon, $status));
     } catch (PDOException $e) {
       echo $e->getMessage();
     }
+    $adm_cnx = null;
   }
 }
 
@@ -1046,7 +1056,8 @@ if (!function_exists("ccp_confirm_JR5_schema")) {
     // regardless of the database being checked/altered.
     //
     global $ccp_adm_cnx;
-    if ( !$ccp_adm_cnx ) { $ccp_adm_cnx = ccp_open_db("","Admin"); }
+    if ( $_DB == "" ) { $_DB = "ccplus_" . $_SESSION['ccp_con_key']; }
+    if ( !$ccp_adm_cnx ) { $ccp_adm_cnx = ccp_open_db($_DB,"Admin"); }
 
     // Setup and run query to get the current structure
     //
@@ -1069,12 +1080,14 @@ if (!function_exists("ccp_confirm_JR5_schema")) {
 
     // If columns are missing, update the table by adding columns
     //
+    $_DB_Table = $_DB . "." . $_Table;
     foreach ( $Missing as $new_yop ) {
-      $alter_qry  = "ALTER TABLE '" . $_Table . "' ADD COLUMN " . $new_yop;
-      $alter_qry .= "  int(7) NOT NULL DEFAULT 0 AFTER YOP_InPress";
+      $alter_qry  = "ALTER TABLE " . $_DB_Table . " ADD COLUMN " . $new_yop;
+      $alter_qry .= " int(7) NOT NULL DEFAULT 0 AFTER YOP_InPress";
       try {
         $result = $ccp_adm_cnx->query($alter_qry);
       } catch (PDOException $e) {
+        echo $e->getMessage();
         return FALSE;
       }
     }
@@ -1179,12 +1192,13 @@ if (!function_exists("ccp_get_report_records")) {
 // This table will "grow" new columns over time, so the function sends
 // back what is currently in the table.
 // Arguments:
-//   $_DB  : (Optional) Database (name) to be checked
+//   $_DB    : (Optional) Database (name) to be checked
+//   $_Table : (Optional) Table (name) to be checked
 // Returns:
 //   $columns : An array of column names
 //
 if (!function_exists("ccp_get_yop_columns")) {
-  function ccp_get_yop_columns( $_DB="" ) {
+  function ccp_get_yop_columns( $_DB="", $_Table ) {
 
     $columns=array();
 
@@ -1197,9 +1211,9 @@ if (!function_exists("ccp_get_yop_columns")) {
 
     // Query for the (YOP) column names in JR5 table
     //
-    $table = "JR5_Report_Data";
+    if ( $_Table == "" ) { $_Table = "JR5_Report_Data"; }
     $yop_qry  = "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA='";
-    $yop_qry .= $_DB . "' AND TABLE_NAME='" . $table . "' AND COLUMN_NAME LIKE 'YOP%'";
+    $yop_qry .= $_DB . "' AND TABLE_NAME='" . $_Table . "' AND COLUMN_NAME LIKE 'YOP%'";
 
     try {
       $_result = $ccp_usr_cnx->query($yop_qry);

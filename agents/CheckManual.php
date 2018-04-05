@@ -65,7 +65,8 @@ foreach ($records as $_rec) {
   // Open Consortium-specific database
   // 
   $_Con = $_rec['con_key'];
-  $ccp_usr_cnx = ccp_open_db("ccplus_".$_Con, "Admin", 1);
+  $_DB = "ccplus_".$_Con;
+  $ccp_usr_cnx = ccp_open_db($_DB, "Admin", 1);
 
   // Get report, provider, and inst info
   //
@@ -87,6 +88,14 @@ foreach ($records as $_rec) {
   } catch (PDOException $e) {
     echo $e->getMessage();
     continue;
+  }
+
+  // If this is a JR5, make sure JR5_Report_Data has the same YOP columns
+  // as Temp_JR5. Get YOPs from Temp_Table, confirm against Dest_Table.
+  // 
+  if ( $_Rpt['Report_Name'] == "JR5" ) {
+    $YOPS = ccp_get_yop_columns($_DB , $Temp_Table);
+    $status = ccp_confirm_JR5_schema($YOPS, $_DB, $Dest_Table);
   }
 
   // Copy records from temp table to main table
@@ -152,6 +161,10 @@ foreach ($records as $_rec) {
   //
   rename ($_rec['XML_File'] , $xml_dest);
   rename ($_rec['CSV_File'] , $csv_dest);
+
+  // Drop record in the ingest log
+  //
+  ccp_record_ingest($_rec['prov_id'],$_rec['inst_id'],$_rec['report_ID'],$_rec['yearmon'],"Saved",$_DB);
 
   // Print confirmation line to stdout
   //

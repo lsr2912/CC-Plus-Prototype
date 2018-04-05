@@ -26,7 +26,11 @@ php ./Mail_Alerts.php
 #
 # Clean up any old temporary data or files
 #
-# php ./CCP_HouseKeeping.php
+# php ./HouseKeeping.php
+#
+# zap all files older than 3 days from temp directory
+find /usr/local/stats_reports/temp -mtime +3 -type f -delete
+#
 echo "--------------------------------------------"
 echo "CC-Plus Nightly Script Done: "`date +%d-%b-%y\ %H:%M`
 echo "--------------------------------------------"

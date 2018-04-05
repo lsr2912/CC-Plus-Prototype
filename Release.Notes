@@ -1,3 +1,20 @@
+Update : 05/Apr/2018
+  * agents::CheckManual.php
+    - script was not adding record to ingest record (database table) on success
+    - added schema test to ensure that "new" columns in manually ingested reports
+      get created in the main data table before trying to move records
+  * agents::nightly/CCP_nightly.sh
+    - add cleanup of temp files (older than 3-days) to overnight process
+  * libraries::counter4_parsers.php
+    - all parsers now ignore "String" as a value for "DOI", "Print_ISSN", "Online_ISSN",
+      and "Proprietary" fields within ItemIdentifier(s). Null ("") is stored instead.
+  * libraries::statsutils.inc.php
+    - ccp_record_ingest : now accepts $_DB argument and uses a unique database connection
+    - ccp_confirm_JR5_schema : fixed typo in query, added echo for query execution error.
+      JR5 schema now auto-extends to include new PubYr values from future JR5 reports.
+    - ccp_get_yop_columns : now accepts an optional Table argument 
+  * libraries::footer.inc.html.php - updated release datestamp
+  * htdocs::ReleaseNotes.txt - this file
 Update : 03/Apr/2018
   * htdocs::UpdateAlerts.php
     - typo fix for session variable name of userId, redirect confirmation fixed
