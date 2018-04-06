@@ -18,7 +18,7 @@ include_once 'ccplus/constants.inc.php';
 ?>
     <div id="footer">
       <p>
-        &copy; 2010-<?php echo date("Y"); ?> : Updated : 05-Apr-18
+        &copy; 2010-<?php echo date("Y"); ?> : Updated : 06-Apr-18
         <a href="<?php echo CCPLUSROOTURL; ?>ReleaseNotes.txt" target="_blank"> (Release Notes)</a>
       </p>
     </div>

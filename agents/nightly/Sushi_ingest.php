@@ -246,7 +246,7 @@ foreach ( $consortia as $_Con ) {
         // Drop a record in the global stats log
         //
         fwrite(STDOUT,"SUSHI : $Report successfully processed and saved as: '$counter_file'\n");
-        ccp_record_ingest( $_PROV, $_INST, $_Rpt['ID'], $yearmon, "Saved" );
+        ccp_record_ingest( $_PROV, $_INST, $_Rpt['ID'], $yearmon, "Saved", $_db );
 
         // If this was a retry attempt, OR there was a failed_ingest with a pending
         // retry that matches what just got successfully ingested, clear the failure

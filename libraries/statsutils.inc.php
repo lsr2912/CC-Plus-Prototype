@@ -144,7 +144,12 @@ if (!function_exists("ccp_record_ingest")) {
     // Connect to database as admin; force a new handle to avoid
     // colliding/changing globals used by caller.
     //
-    if ( $_DB == "" ) { $_DB = "ccplus_" . $_SESSION['ccp_con_key']; }
+    if ( $_DB == "" ) {
+      // If session not set, we're probably trying to log a failed retry
+      // so, rather than setting off errors, just bail
+      if ( !isset($_SESSION) ) { return FALSE; }
+      $_DB = "ccplus_" . $_SESSION['ccp_con_key'];
+    }
     $adm_cnx = ccp_open_db($_DB, "Admin", 1);
 
     // Execute the query to add the record
