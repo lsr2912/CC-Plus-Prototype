@@ -1203,7 +1203,7 @@ if (!function_exists("ccp_get_report_records")) {
 //   $columns : An array of column names
 //
 if (!function_exists("ccp_get_yop_columns")) {
-  function ccp_get_yop_columns( $_DB="", $_Table ) {
+  function ccp_get_yop_columns( $_DB="", $_Table="" ) {
 
     $columns=array();
 
