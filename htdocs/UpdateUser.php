@@ -51,18 +51,19 @@ if ( isset($_POST['Create']) ) {	// On Create, ensure no duplicate email address
 if ( isset($_POST['Update']) ) {
   $_user = ccp_get_users($_UID);
   if ( ($_POST['email'] != $_user['email']) && $existing_count > 0 ) { $ERR = 3; }
+}
 
-  // Managers cannot set role w/ more priv than they have
-  // (not a show-stopper, just an enforced reset)
-  //
-  if ( isset($_POST['CCPRole']) ) {
-    $_ROLE = $_POST['CCPRole'];
-    if ( ($_SESSION['role'] == MANAGER_ROLE) && ($_ROLE < $_SESSION['role']) ) {
-      $_ROLE = $_SESSION['role'];
-    }
-  } else {
-    $ERR = 2;
+// Managers cannot set role w/ more priv than they have
+// (not a show-stopper, just an enforced reset)
+//
+$_ROLE = USER_ROLE;
+if ( isset($_POST['CCPRole']) ) {
+  $_ROLE = $_POST['CCPRole'];
+  if ( ($_SESSION['role'] == MANAGER_ROLE) && ($_ROLE < $_SESSION['role']) ) {
+    $_ROLE = $_SESSION['role'];
   }
+} else {
+  $ERR = 2;
 }
 
 // If access and UID good, proceed

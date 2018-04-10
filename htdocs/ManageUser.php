@@ -56,6 +56,7 @@ if ( isset($_GET['me']) ) {
 // Set $_UID to form value
 //
 if ( isset($_REQUEST['User']) ) { $_UID = $_REQUEST['User']; }
+if ( $_UID == $_SESSION['ccp_uid'] ) { $_ME = TRUE; }
 
 // Check rights; proceed if Admin/Manager or $_ME
 //
@@ -264,30 +265,36 @@ if ( ($_SESSION['role'] <= MANAGER_ROLE) || $_ME ) {
     }	// end-if role is Admin
 ?>
     </tr>
+<?php
+    if ( !$_ME ) { 	// Don't present role if viewing own-profile
+?>
     <tr>
       <td align="right"><label for="CCPRole">Role</label></td>
       <td>
         <select name="CCPRole" id="CCPRole" />
 <?php
-    // Populate dropdown with available roles. Manager is limited to
-    // their role and "below".
-    //
-    $_roles = ccp_get_roles_ui();
-    foreach ( $_roles as $_r ) {
-      if ( $_SESSION['role']!=ADMIN_ROLE &&
-           $_r['role_id'] < $_SESSION['role'] ) { continue; }
-      print "          <option value=\"" . $_r['role_id'] . "\"";
-      if ( $_r['role_id'] == $_user['role'] ) {
-        print " selected />" . $_r['name'] . "</option>\n";
-      } else {
-        print " />" . $_r['name'] . "</option>\n";
+      // Populate dropdown with available roles. Manager is limited to
+      // their role and "below".
+      //
+      $_roles = ccp_get_roles_ui();
+      foreach ( $_roles as $_r ) {
+        if ( $_SESSION['role']!=ADMIN_ROLE &&
+             $_r['role_id'] < $_SESSION['role'] ) { continue; }
+        print "          <option value=\"" . $_r['role_id'] . "\"";
+        if ( $_r['role_id'] == $_user['role'] ) {
+          print " selected />" . $_r['name'] . "</option>\n";
+        } else {
+          print " />" . $_r['name'] . "</option>\n";
+        }
       }
-    }
 ?>
         </select>
       </td>
       <td colspan="3">&nbsp;</td>
     </tr>
+<?php
+    }	// end-if not-ME (viewing own-profile)
+?>
     <tr><td colspan="5">&nbsp;</td></tr>
 <?php
   }	// End-if Admin or Manager Role

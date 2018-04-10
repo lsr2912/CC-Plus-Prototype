@@ -1,3 +1,8 @@
+Update : 10/Apr/2018
+  * htdocs::ManageUser.php
+    - suppress Role dropdown when editing/viewing own-profile settings
+  * htdocs::UpdateAlerts.php
+    - logic bugfix - assigning role for new user threw an error
 Update : 06/Apr/2018
   * agents/nightly::Sushi_ingest.php
     - call to ccp_record_ingest() needed $_db argument
