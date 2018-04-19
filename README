@@ -25,11 +25,11 @@ define ("CCPLUSREPORTS", "/usr/local/stats_reports/");
 
 This path is the home for the raw-XML and processed Counter-CSV
 files that are retrieved via Sushi. Feel free to change this to
-another place, jut be sure it is accessbile to the webserver.
+another place, just ensure that it is accessbile to the webserver.
  
-In order for the raw XML and CSV files to be accessible to the
-web-server, this path needs be aliased in the httpd config file
-as "/raw_reports". For example, if CCPLUSROOTURL is "/", then:
+In order for the raw XML and CSV files to be accessible to CC+,
+this path needs be aliased in the httpd config file as
+"/raw_reports". For example, if CCPLUSROOTURL is "/", then:
 these lines should be added to an Apache .conf file in the
 directory definitions:
 
@@ -56,15 +56,16 @@ And, if your web/httpd/apache server runs as "apache:apache", then:
 I imagine there are *better* ways to accomplish this, and am certainly
 open to suggestions to improve the functionality - and security - of
 the files/service. This being a first-pass, the easy_basic_brute_force
-method is currently in-use. It's also worth noting that this also means
-that the .CSV and .XLS files for all consortia within the installation
-are accessible to all users of the system (by changing the browser URL).
+method is currently in-use. It's also worth noting that this means that
+the .CSV and .XLS files for all consortia within the installation are
+accessible to all users of the system (by changing the browser URL).
 
 Cron Automation
 ---------------
 
 Adding these two lines to the host-system cron-configuration (or something
-like them, depending on your preferences) is also a good idea:
+like them, depending on your preferences) is also important if you want the
+system to execute the overnight harvesting and alert processes:
 
 CheckManual.php : looks for manually ingested reports in the temp folder,
                   and if found, processes them into the running system;

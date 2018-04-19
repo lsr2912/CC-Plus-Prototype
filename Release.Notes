@@ -1,3 +1,10 @@
+Update : 19/Apr/2018
+  * htdocs::ImportSettings.php
+    - remove "admin_userid" from import queries
+  * htdocs::ExportSettings.php
+    - remove "admin_userid" from export queries
+  * htdocs/templates::Inst_settings_template.xls
+    - Pull out "admin_userid" column and description from the template
 Update : 10/Apr/2018
   * htdocs::ManageUser.php
     - suppress Role dropdown when editing/viewing own-profile settings

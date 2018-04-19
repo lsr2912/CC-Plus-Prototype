@@ -96,8 +96,8 @@ if ( $ERR == 0 ) {
       }
       break;
     case "Inst":
-      $header = array('ID','Name','Active','Admin_UserID','Notes');
-      // $header = array('ID','Name','Active','Admin UserID','notes','Type','FTE','IP Range','Shib URL');
+      $header = array('ID','Name','Active','Notes');
+      // $header = array('ID','Name','Active','notes','Type','FTE','IP Range','Shib URL');
       if ( $_POST['I_prov'] == "None" ) {
         $records = ccp_get_institutions($_POST['I_stat']);
       } else {
@@ -122,7 +122,6 @@ if ( $ERR == 0 ) {
         $output[] = $row['ID'];
         $output[] = $row['name'];
         $output[] = ($row['active']==1) ? "Y" : "N";
-        $output[] = $row['admin_userid'];
         $output[] = $row['notes'];
         // $output[] = $row['Type'];
         // $output[] = $row['FTE'];

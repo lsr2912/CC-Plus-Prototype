@@ -215,8 +215,8 @@ if ( $ERR == 0 ) {
       // Build 2 insert queries: one for institution and one (conditionally)
       // for sushi_settings when prov_id is non-zero; start with institution.
       //
-      $_i_qry  = "INSERT INTO " . $db_table . " (inst_id,name,active,admin_userid,notes)";
-      $_i_qry .= " VALUES (?,?,?,?,?)";
+      $_i_qry  = "INSERT INTO " . $db_table . " (inst_id,name,active,notes)";
+      $_i_qry .= " VALUES (?,?,?,?)";
       $_s_qry  = "INSERT INTO sushi_settings (inst_id,prov_id,RequestorID,RequestorName,RequestorEmail,CustRefID,CustRefName)";
       $_s_qry .= " VALUES (?,?,?,?,?,?,?)";
       $_last_inst_id = 0;
@@ -234,9 +234,7 @@ if ( $ERR == 0 ) {
           //
           if ( $data[0] != $_last_inst_id ) {
             $active = ($data[2]=="N") ? 0 : 1;
-            $user_id=0;
-            if ( is_numeric($data[3]) ) { $user_id = $data[3]; }
-            $_i_args = array($data[0],$data[1],$active,$user_id,$data[4]);
+            $_i_args = array($data[0],$data[1],$active,$data[3]);
 
             // execute the institution table insert
             //
@@ -252,11 +250,11 @@ if ( $ERR == 0 ) {
 
           // If prov_id is non-zero, handle sushi settings
           //
-          if ( is_numeric($data[5]) && $data[5]>0 ) {
+          if ( is_numeric($data[4]) && $data[4]>0 ) {
 
             // Run the insert query for sushi_settings
             //
-            $_s_args = array($data[0],$data[5],$data[6],$data[7],$data[8],$data[9],$data[10]);
+            $_s_args = array($data[0],$data[4],$data[5],$data[6],$data[7],$data[8],$data[9]);
 
             // execute the institution table insert
             //
