@@ -378,7 +378,7 @@ if ( $ERR == 0 ) {
     $crumbs = array();
     array_push($crumbs,array("Manual ingest", CCPLUSROOTURL . "ManualIngest.php"));
     array_push($crumbs,array("Results", ""));
-    print_page_header("CC-Plus Manual Ingest Processing : Results ",TRUE,$crumbs);
+    print_page_header("CC-Plus Manual Ingest Processing : Results ",TRUE,TRUE,$crumbs);
 ?>
  <p>&nbsp;</p>
 <?php

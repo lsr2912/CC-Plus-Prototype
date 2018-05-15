@@ -70,8 +70,8 @@ if ( $_SESSION['role'] == ADMIN_ROLE) {
 
 // Setup page and add jQuery/Ajax refresh script
 //
-$crumbs = array();	// no crumbs this page
-print_page_header($_title,TRUE,$crumbs);
+// $crumbs = array();	// no crumbs this page
+print_page_header($_title,TRUE);
 print "  <link href=\"" . CCPLUSROOTURL . "include/tablesorter_theme.css\" rel=\"stylesheet\">\n";
 print "  <link href=\"" . CCPLUSROOTURL . "include/jquery.qtip.min.css\" rel=\"stylesheet\">\n";
 print "  <script src=\"" . CCPLUSROOTURL . "include/jquery.tablesorter.js\"></script>\n";

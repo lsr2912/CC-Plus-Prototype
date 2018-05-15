@@ -92,8 +92,8 @@ $_raw_csv = $base_path."/COUNTER/".$_rept_name."_".$from."_".$to.".csv";
 
 // Setup page and add jQuery/Ajax refresh script
 //
-$crumbs = array();	// no crumbs this page
-print_page_header("CC-Plus Report Details",TRUE,$crumbs);
+// $crumbs = array();	// no crumbs this page
+print_page_header("CC-Plus Report Details",TRUE);
 print "  <link href=\"" . CCPLUSROOTURL . "include/tablesorter_theme.css\" rel=\"stylesheet\">\n";
 print "  <script src=\"" . CCPLUSROOTURL . "include/jquery.tablesorter.js\"></script>\n";
 print "  <script src=\"" . CCPLUSROOTURL . "include/jquery.tablesorter.widgets.js\"></script>\n";

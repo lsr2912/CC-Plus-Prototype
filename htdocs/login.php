@@ -77,7 +77,7 @@ if ( isset($_POST['conID']) && isset($_POST['email']) && isset($_POST['password'
 //
 // Display login form
 //
-print_page_header("CC-Plus Proof-of-Concept: Login");
+print_page_header("CC-Plus Proof-of-Concept: Login",FALSE,FALSE);
 print "      <div class=\"innertube\" align=\"center\">\n";
 print "        <form method=\"POST\" action=\"" . CCPLUSROOTURL . "login.php\">\n";
 ?>

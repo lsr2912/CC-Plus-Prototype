@@ -99,31 +99,33 @@ if (!function_exists("prettydate")) {
 
 if (!function_exists("print_page_header")) {
   function print_page_header() {
-    //------------------------------------------------------------------------------------------
+    //---------------------------------------------------------------------------------------------
     //
-    // Usage: print_page_header ( $title [,$userdata] [,$crumbs] [,$jqueryUI] )
+    // Usage: print_page_header ( $title [,$userdata] [,$show_links] [,$crumbs] [,$jqueryUI] )
     //
     // Arguments:
-    //     $title : page title
-    //  $userdata : boolean indicates whether to include user-data elements
-    //    $crumbs : array of strings to build a breacrumb list from
-    //  $jqueryUI : boolean flag to have Jquery UI elements loaded in the header
+    //      $title : page title
+    //   $userdata : boolean indicates whether to include user-data elements (default: FALSE)
+    // $show_links : boolean indicates whether to include upper nav-elements (default: TRUE)
+    //     $crumbs : array of strings to build a breacrumb list from (default: no crumbs)
+    //   $jqueryUI : boolean flag to have Jquery UI elements loaded in the header (default: FALSE)
     //
-    //------------------------------------------------------------------------------------------
+    //---------------------------------------------------------------------------------------------
     //
     // Check input arguments
     //
     $userdata = FALSE;
+    $show_links = TRUE;
     $jqueryUI = FALSE;
-    $tabsort = FALSE;
     $crumbs = array();
 
     $nargs = func_num_args();
     if ($nargs < 1) die ("Title is required by print_page_header()");
     $title = func_get_arg(0);
     if ($nargs >= 2) { $userdata = func_get_arg(1); }
-    if ($nargs >= 3) { $crumbs = func_get_arg(2); }
-    if ($nargs >= 4) { $jqueryUI = func_get_arg(3); }
+    if ($nargs >= 3) { $show_links = func_get_arg(2); }
+    if ($nargs >= 4) { $crumbs = func_get_arg(3); }
+    if ($nargs >= 5) { $jqueryUI = func_get_arg(4); }
     $n_crumbs = count($crumbs);
 
     //
@@ -166,29 +168,33 @@ JQ1;
     print "    <link rel=\"stylesheet\" href=\"" . CCPLUSROOTURL . "include/ccplus.css\" type=\"text/css\" />\n";
     print "    <style type=\"text/css\" media=\"all\"> @import \"" . CCPLUSROOTURL . "include/global.css\";</style>\n";
     print "  </head>\n  <body>\n";
-    print "    <div>\n";
-    print "      <p style=\"float:left;\">\n";
-    $__role = 0;
-    if ( isset($_SESSION['role']) ) { $__role = $_SESSION['role']; }
-    if ( $__role<=MANAGER_ROLE && !$_on_adminhome ) {
-      print "        <a href=\"" . CCPLUSROOTURL . "AdminHome.php\">Administration Home</a><br /><br />\n";
+    if ( $show_links ) {
+      print "    <div>\n";
+      print "      <p style=\"float:left;\">\n";
+      $__role = 0;
+      if ( isset($_SESSION['role']) ) { $__role = $_SESSION['role']; }
+      if ( $__role<=MANAGER_ROLE && !$_on_adminhome ) {
+        print "        <a href=\"" . CCPLUSROOTURL . "AdminHome.php\">Administration Home</a><br /><br />\n";
+      }
+      if ( !$_on_reports ) {
+        print "        <a href=\"" . CCPLUSROOTURL . "ReportHome.php\">Reports Home</a>\n";
+      }
+      print "      </p>\n";
+      print "      <p style=\"float:right;\">\n";
+      // print "        <a href=\"" . CCPLUSROOTURL . "Wiki\">Help & Documentation</a><br /><br />\n";
+      print "        <a href=\"http://docs.google.com/document/d/1tS64Q13ngJkbPmKS2WmrSbHN1REVoLQPaEM-1lsiYtw\">";
+      print "Help & Documentation</a><br /><br />\n";
+      if ( $userdata ) {
+        $ident = "";
+        if ( isset($_SESSION['first_name']) ) { $ident .= $_SESSION['first_name']." "; }
+        if ( isset($_SESSION['last_name']) ) { $ident .= $_SESSION['last_name']." "; }
+        if ( isset($_SESSION['role']) ) { $ident .= "(" . ccp_role_name($_SESSION['role']) . ")"; }
+        print $ident;
+        print "<br />\n        <a href=\"" . CCPLUSROOTURL . "logout.php\">Logout</a> &nbsp; | ";
+        print "<a href=\"" . CCPLUSROOTURL . "ManageUser.php?me=1\">Profile</a>\n";
+      }
+      print "      </p>\n    </div>\n";
     }
-    if ( !$_on_reports ) {
-      print "        <a href=\"" . CCPLUSROOTURL . "ReportHome.php\">Reports Home</a>\n";
-    }
-    print "      </p>\n";
-    print "      <p style=\"float:right;\">\n";
-    print "        <a href=\"" . CCPLUSROOTURL . "Wiki\">Help & Documentation</a><br /><br />\n";
-    if ( $userdata ) {
-      $ident = "";
-      if ( isset($_SESSION['first_name']) ) { $ident .= $_SESSION['first_name']." "; }
-      if ( isset($_SESSION['last_name']) ) { $ident .= $_SESSION['last_name']." "; }
-      if ( isset($_SESSION['role']) ) { $ident .= "(" . ccp_role_name($_SESSION['role']) . ")"; }
-      print $ident;
-      print "<br />\n        <a href=\"" . CCPLUSROOTURL . "logout.php\">Logout</a> &nbsp; | ";
-      print "<a href=\"" . CCPLUSROOTURL . "ManageUser.php?me=1\">Profile</a>\n";
-    }
-    print "      </p>\n    </div>\n";
     print "    <div id=\"body-container\">\n";
     print "      <h1 style=\"text-align:center\">" . $title . "</h1>\n";
 

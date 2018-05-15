@@ -116,7 +116,7 @@ if ( $_DEST == "HTML" ) {
   }
 
   $crumbs = array();
-  print_page_header("CC-Plus Reports Home: ". $_CON['name'],TRUE,$crumbs,TRUE,TRUE);
+  print_page_header("CC-Plus Reports Home: ". $_CON['name'],TRUE,TRUE,$crumbs,TRUE);
   print "  <link href=\"" . CCPLUSROOTURL . "include/tablesorter_theme.css\" rel=\"stylesheet\">\n";
   print "  <script src=\"" . CCPLUSROOTURL . "include/jquery.tablesorter.js\"></script>\n";
   print "  <script src=\"" . CCPLUSROOTURL . "include/jquery.tablesorter.widgets.js\"></script>\n";

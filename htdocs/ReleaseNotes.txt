@@ -1,3 +1,12 @@
+Update : 15/May/2018
+  * htdocs::UpdateUser.php
+    - bugfix when saving changes to 'Administrator' user settings
+  * htdocs::ManageProvider.php
+    - Add provider ID (readonly) to the display
+  * libraries::helpers.inc.php
+    - Added argument to print_page_header to allow suppression of upper-nav links
+  * htdocs:: login.php, logout.php, ReportHome, ManualIngest, ReportDetail, IngestLog
+    - changes to print_page_header() call
 Update : 19/Apr/2018
   * htdocs::ImportSettings.php
     - remove "admin_userid" from import queries

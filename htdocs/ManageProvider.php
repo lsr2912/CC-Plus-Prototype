@@ -147,7 +147,11 @@ if ( $_role == ADMIN_ROLE ) {
 ?>
         </select>
       </td>
-      <td colspan="3">&nbsp;</td>
+      <td>&nbsp;</td>
+      <td align="right"><label for="Pid">Provider ID</label>:</td>
+      <td align="left">
+        <strong><div id="Pid"><?php print $_provider['prov_id'] ?></div></strong>
+      </td>
     </tr>
     <tr><td colspan="5">&nbsp;</td></tr>
     <tr>

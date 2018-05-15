@@ -41,7 +41,7 @@ session_destroy();
 
 // Print a little ditty to let user know we're done
 //
-print_page_header("CC-Plus Confirmation");
+print_page_header("CC-Plus Confirmation",FALSE,FALSE);
 ?>
 <div id="maincontent">
   <p>&nbsp;</p>

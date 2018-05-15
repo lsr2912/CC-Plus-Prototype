@@ -63,7 +63,11 @@ if ( isset($_POST['CCPRole']) ) {
     $_ROLE = $_SESSION['role'];
   }
 } else {
-  $ERR = 2;
+  if ( $_POST['email'] == "Administrator" ) {
+    $_ROLE = ADMIN_ROLE;
+  } else {
+    $ERR = 2;
+  }
 }
 
 // If access and UID good, proceed
