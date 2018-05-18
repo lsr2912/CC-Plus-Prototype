@@ -40,6 +40,7 @@ $(document).ready(function() {
   $("#Prov").change(function(){ // change function of listbox
     $.post("provprov_js.php", {"prov_id":$('#Prov').val()}, function(return_data,status){
       $("#PID").val(return_data.prov.prov_id);
+      $("#Pid").html(return_data.prov.prov_id);
       $("#Pname").val(return_data.prov.name);
       $("#Pstat").val(return_data.prov.active);
       $("#Sushi_URL").val(return_data.prov.server_url);

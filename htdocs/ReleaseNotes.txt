@@ -1,3 +1,12 @@
+Update : 18/May/2018
+  * htdocs::ExportSettings.php
+    - bugfixes: status='Active' for Inst or Provider exports threw errors into CSV
+  * htdocs::ReportHome.php
+    - added INST argument to ccp_get_alerts() call to match new set of expected args
+  * htdocs/include::Manage_Prov.js
+    - provider ID updated when Provider choice changes
+  * libraries::dbutils.inc.php
+    - new, optional arguments added to ccp_get_alerts, ccp_get_reports, ccp_providers
 Update : 15/May/2018
   * htdocs::UpdateUser.php
     - bugfix when saving changes to 'Administrator' user settings

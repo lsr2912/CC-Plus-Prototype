@@ -635,12 +635,13 @@ if (!function_exists("ccp_get_alert_settings")) {
 //   $_stat : limit the return-set based on alert status (default:Active)
 //            Can also be "ALL" for no limiter
 //   $_prov : limit the return-set based on provider ID (default:all)
+//   $_inst : limit the return-set based on institution ID (default:all)
 //   $_rept : limit the return-set based on report-name (default:all)
 //   $_from : Start of date range as YYYY-MM (0=last-month)
 //   $_to   : End of date range as YYYY-MM (0=last-month)
 //
 if (!function_exists("ccp_get_alerts")) {
-  function ccp_get_alerts( $_stat="Active", $_prov=0, $_rept="", $_from="", $_to="" ) {
+  function ccp_get_alerts( $_stat="Active", $_prov=0, $_inst=0, $_rept="", $_from="", $_to="" ) {
 
     // Setup database connection
     //
@@ -668,6 +669,10 @@ if (!function_exists("ccp_get_alerts")) {
       $_where .= ( $_where == "" ) ? "" : " AND ";
       $_where .= "Al.prov_id=" . $_prov;
     }
+    if ( $_inst!=0 ) {
+      $_where .= ( $_where == "" ) ? "" : " AND ";
+      $_where .= "Al.inst_id=" . $_inst;
+    }
     if ( $_rept!="" ) {
       $_where .= ( $_where == "" ) ? "" : " AND ";
       $_where .= "Rpt.Report_Name='" . $_rept . "'";
@@ -681,7 +686,8 @@ if (!function_exists("ccp_get_alerts")) {
 
     // Execute query, prepare results
     //
-    if ( $_where != "" ) { $_qry .= " WHERE " . $_where; }
+    $_qry .= " WHERE Al.inst_id=0";
+    if ( $_where != "" ) { $_qry .= " OR (" . $_where . ")"; }
 
     $alerts=array();
     try {
@@ -832,12 +838,14 @@ if (!function_exists("ccp_get_reports_ui")) {
 }
 
 // Function to return a list of COUNTER reports
-// Argument: $report_id : filter on a single report ID
-// Returns : $reports : an array containing all reports in the database 
-//    OR   : $report  : an array with a single report row 
+// Arguments: $report_id   : filter on a single report ID (if non-zero, other args ignored!)
+//            $report_name : filter based on a report_name
+//            $report_rev  : filter based on a COUNTER revision (e.g. 4, 5)
+// Returns  : $reports : an array containing all reports in the database 
+//    OR    : $report  : an array with a single report row (when report_id!=0)
 //
 if (!function_exists("ccp_get_reports")) {
-  function ccp_get_reports($report_id=0) {
+  function ccp_get_reports($report_id=0, $report_name="", $report_rev=0) {
 
     // Setup database connection
     //
@@ -847,7 +855,19 @@ if (!function_exists("ccp_get_reports")) {
     // Setup the query
     //
     $_qry  = "SELECT * FROM ccplus_global.Reports";
-    if ( $report_id > 0 ) { $_qry .= " WHERE ID=$report_id"; }
+    $_where = " ";
+    if ( $report_id > 0 ) {
+      $_where .= "WHERE ID=$report_id";
+    } else {
+      if ( $report_name != "" ) {
+        $_where .= "WHERE Report_Name='$report_name'";
+      }
+      if ( $report_rev != 0 ) {
+        $_where .= ( $_where == "" ) ? "WHERE " : " AND ";
+        $_where .= "revision=$report_rev";
+      }
+    }
+    if ( $_where != " " ) { $_qry .= $_where; }
 
     // Execute query, prepare results
     //
@@ -1190,10 +1210,12 @@ if (!function_exists("ccp_get_institutions")) {
     $_qry = "SELECT * FROM institution";
     $_where = "";
     if ( $_stat != "ALL" ) { $_where .= "active=" . $_stat; }
-    $_where .= ( $_where == "" ) ? "" : " AND ";
-    if ( $_inst != 0 ) { $_where .= " inst_id=" . $_inst; }
+    if ( $_inst != 0 ) {
+      $_where .= ( $_where == "" ) ? "" : " AND ";
+      $_where .= " inst_id=" . $_inst;
+    }
     if ( $_where != "" ) { $_qry .= " WHERE " . $_where; }
-   
+
     // Execute query
     //
     $inst  = "";
@@ -1301,13 +1323,14 @@ if (!function_exists("ccp_get_providers_ui")) {
 }
 
 // Function to return provider information.
-// Argument: $_prov : limits the return set to a single provider
+// Arguments: $_prov : limits the return set to a single provider
 //                     (the default is all providers, all fields)
+//            $_stat : (0=Active, 1=Inactive, default=ALL)
 // Returns : $providers : an array of associative arrays with provider info
 //      OR : $provider  : an associative array with one provider's info
 //
 if (!function_exists("ccp_get_providers")) {
-  function ccp_get_providers ($_prov=0) {
+  function ccp_get_providers ($_prov=0, $_stat="ALL") {
 
     // Setup database connections
     //
@@ -1317,7 +1340,13 @@ if (!function_exists("ccp_get_providers")) {
     // Build query, setup receiving array
     //
     $_qry = "SELECT * FROM provider";
-    if ( $_prov != 0 ) { $_qry .= " WHERE prov_id='" . $_prov . "'"; }
+    $_where = "";
+    if ( $_stat!="ALL" ) { $_where .= "active='" . $_stat . "'"; }
+    if ( $_prov!=0 ) {
+      $_where .= ( $_where == "" ) ? "" : " AND ";
+      $_where .= "prov_id=" . $_prov;
+    }
+    if ( $_where != "" ) { $_qry .= " WHERE " . $_where; }
 
     // Execute query
     //

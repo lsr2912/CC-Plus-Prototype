@@ -99,7 +99,7 @@ if ( $ERR == 0 ) {
       $header = array('ID','Name','Active','Notes');
       // $header = array('ID','Name','Active','notes','Type','FTE','IP Range','Shib URL');
       if ( $_POST['I_prov'] == "None" ) {
-        $records = ccp_get_institutions($_POST['I_stat']);
+        $records = ccp_get_institutions(0,$_POST['I_stat']);
       } else {
         $records = ccp_get_institution_settings($_POST['I_stat'], $_POST['I_prov']);
         array_push($header,'Prov_ID','RequestorID','RequestorName','RequestorEmail','CustomerRefID','CustRefName');
@@ -119,7 +119,11 @@ if ( $ERR == 0 ) {
       //
       foreach ( $records as $row ) {
         $output = array();
-        $output[] = $row['ID'];
+        if ( $_POST['I_prov'] == "None" ) {
+          $output[] = $row['inst_id'];
+        } else {
+          $output[] = $row['ID'];
+        }
         $output[] = $row['name'];
         $output[] = ($row['active']==1) ? "Y" : "N";
         $output[] = $row['notes'];
@@ -139,7 +143,7 @@ if ( $ERR == 0 ) {
       }
       break;
     case "Prov":
-      $records = ccp_get_providers($_POST['P_stat']);
+      $records = ccp_get_providers(0,$_POST['P_stat']);
       $header = array('ID','Name','Active','ServerURL','Security','Auth_Username','Auth_Password','Ingest_Day');
      
       // Open output with UTF-8 encoding and send header row

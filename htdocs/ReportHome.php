@@ -63,7 +63,6 @@ if ( $_FROMYM == "" ) { $_FROMYM = $range['from']; }
 if ( $_TOYM == "" ) { $_TOYM = $range['to']; }
 $year_mons = createYMarray($_FROMYM, $_TOYM);
 $filt_reports = ccp_repts_available($_FROMYM,$_TOYM,$_PROV,0,$_INST);
-// $filt_providers = ccp_stats_ID_list("PROV",$_REPT,$_FROMYM,$_TOYM,0,0,$_INST);
 $filt_providers = ccp_stats_ID_list("PROV",$_REPT,$_FROMYM,$_TOYM,0,0,$_INST);
 if ( count($filt_providers) > 1 ) {
   array_unshift($filt_providers,array("prov_id"=>0,"name"=>"ALL"));
@@ -89,7 +88,7 @@ if ( $_RUNIT ) {
   // Get info / counts of all alerts implicated in this report
   //
   $alert_status = ccp_get_enum_values("alerts","status");
-  $alerts = ccp_get_alerts("ALL",$_PROV,$_REPT,$_FROMYM, $_TOYM);
+  $alerts = ccp_get_alerts("ALL",$_PROV,$_INST,$_REPT,$_FROMYM, $_TOYM);
   $alert_counts = array();
   $total_count = 0;
   foreach ( $alert_status as $_status ) {
