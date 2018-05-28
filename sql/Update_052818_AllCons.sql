@@ -1,0 +1,11 @@
+---------------------------------------------------------------
+-- Update the consortia database schema(s)
+-- Only needs to be run once (for the 2018-May-28 update).
+---------------------------------------------------------------
+-- Apply the update below to each CC-Plus consortium database
+-- setup on this system. Do at least:
+--    # mysql ccplus_con_template < Updates_052818_AllCons.sql
+-- , and then for each consortium:
+--  # mysql ccplus_SOMEKEY < Updates_052818_AllCons.sql
+--
+alter table alerts add column inst_id int(7) default 0 after prov_id;

@@ -263,6 +263,7 @@ CREATE TABLE `alerts` (
   `failed_id` int(7) default 0,
   `status` enum('Active','Silent','Delete') DEFAULT NULL,
   `prov_id` int(7) default 0,
+  `inst_id` int(7) default 0,
   `modified_by` int(7) default NULL,
   `time_stamp` timestamp NOT NULL default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP,
   PRIMARY KEY (`ID`)

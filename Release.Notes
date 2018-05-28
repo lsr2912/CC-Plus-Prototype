@@ -1,3 +1,9 @@
+Update : 28/May/2018
+  * sql::ccplus_con_template.sql
+    - schema change to restore inst_id column to alerts table
+      (prep for future inst-specific alerting)
+  * sql::Update_052818_AllCons.sql
+    - SQL-format schema update for existing instances
 Update : 18/May/2018
   * htdocs::ExportSettings.php
     - bugfixes: status='Active' for Inst or Provider exports threw errors into CSV
